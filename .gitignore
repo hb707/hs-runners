@@ -1,0 +1,30 @@
+node_modules/
+dist/
+.env
+.env.local
+*.env
+
+# Data files (server-side persistence)
+backend/data/
+!backend/data/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build output
+.next/
+out/
+
+# Test coverage
+coverage/
+
+.SUPABASE-CONFIG
