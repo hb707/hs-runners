@@ -170,13 +170,13 @@ export default function UploadPage() {
         {/* Analyzed: editable form */}
         {state === 'analyzed' && analyzed && (
           <div className="w-full space-y-3 bg-white rounded-2xl p-4 border border-neutral-100 shadow-sm">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 min-w-0">
               <label className="text-sm font-medium text-neutral-700">러닝 날짜</label>
               <input
                 type="date"
                 value={dateInput}
                 onChange={(e) => setDateInput(e.target.value)}
-                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary bg-surface"
+                className="w-full max-w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary bg-surface"
               />
             </div>
             <div className="flex flex-col gap-1">
