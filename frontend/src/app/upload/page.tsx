@@ -176,7 +176,7 @@ export default function UploadPage() {
                 type="date"
                 value={dateInput}
                 onChange={(e) => setDateInput(e.target.value)}
-                className="w-full max-w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary bg-surface"
+                className="w-full max-w-full appearance-none border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary bg-surface"
               />
             </div>
             <div className="flex flex-col gap-1">
