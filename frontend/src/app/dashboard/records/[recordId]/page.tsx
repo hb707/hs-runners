@@ -29,7 +29,7 @@ export default function RecordDetailPage() {
   if (!record) return null;
 
   const distance = record.manualDistanceKm ?? record.distanceKm;
-  const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${record.imageUrl}`;
+  const imageUrl = record.imageUrl;
   const recordDate = new Date(record.recordedAt).toLocaleDateString('ko-KR', {
     year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
   });
@@ -77,12 +77,10 @@ export default function RecordDetailPage() {
                record.visionConfidence === 'low' ? '낮음' : '실패'}
             </span>
           </div>
-          {record.visionRaw && (
-            <div className="flex justify-between text-sm">
-              <span className="text-neutral-500">인식된 텍스트</span>
-              <span className="text-neutral-700 font-mono text-xs">{record.visionRaw}</span>
-            </div>
-          )}
+          <div className="flex justify-between text-sm">
+            <span className="text-neutral-500">인식된 텍스트</span>
+            <span className="text-neutral-700 font-mono text-xs">{record.visionConfidence === 'failed' ? '-' : (record.visionRaw ?? '-')}</span>
+          </div>
           {record.manualDistanceKm !== null && (
             <div className="flex justify-between text-sm">
               <span className="text-neutral-500">수동 입력</span>

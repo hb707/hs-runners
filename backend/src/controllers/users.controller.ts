@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
-import { findUserById, upsertUser, getUsers } from '../services/storage.service';
+import { ulid } from 'ulid';
+import { findUserById, upsertUser, uploadToStorage } from '../services/storage.service';
 import { getTeamMembers } from '../services/teams.service';
 import { AppError } from '../middleware/error.middleware';
 
@@ -19,7 +20,26 @@ export async function updateMe(req: Request, res: Response, next: NextFunction):
     if (!user) throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
 
     const nickname = typeof req.body.nickname === 'string' ? req.body.nickname.trim().slice(0, 20) : user.nickname;
-    const updated = { ...user, nickname, updatedAt: new Date().toISOString() };
+    const profileImageUrl = typeof req.body.profileImageUrl === 'string' ? req.body.profileImageUrl : user.profileImageUrl;
+    const updated = { ...user, nickname, profileImageUrl, updatedAt: new Date().toISOString() };
+    await upsertUser(updated);
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateAvatar(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.file) throw new AppError(400, 'NO_FILE', 'Image file is required');
+    const user = await findUserById(req.user!.userId);
+    if (!user) throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
+
+    const ext = req.file.originalname.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const filename = `avatar_${ulid()}.${ext}`;
+    const profileImageUrl = await uploadToStorage('profile-images', filename, req.file.buffer, req.file.mimetype);
+
+    const updated = { ...user, profileImageUrl, updatedAt: new Date().toISOString() };
     await upsertUser(updated);
     res.json({ success: true, data: updated });
   } catch (err) {

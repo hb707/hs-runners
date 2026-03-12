@@ -3,6 +3,16 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import type { Team, Fine, User } from '@/types';
 
+interface CodeHistoryItem {
+  id: string;
+  code: string;
+  teamId: string;
+  teamName: string;
+  createdAt: string;
+  expiresAt: string;
+  usedBy: { userId: string; nickname: string; profileImageUrl: string } | null;
+}
+
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? '') + '/api';
 
 function adminAxios(token: string) {
@@ -80,6 +90,7 @@ function AdminDashboard({ token, onLogout }: { token: string; onLogout: () => vo
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [copiedCode, setCopiedCode] = useState(false);
+  const [codeHistory, setCodeHistory] = useState<CodeHistoryItem[]>([]);
 
   // 벌금 탭 팀 선택
   const [fineTeamId, setFineTeamId] = useState('');
@@ -127,6 +138,12 @@ function AdminDashboard({ token, onLogout }: { token: string; onLogout: () => vo
     }
   }
 
+  useEffect(() => {
+    api.get<{ success: boolean; data: CodeHistoryItem[] }>('/teams/codes')
+      .then((res) => setCodeHistory(res.data.data))
+      .catch(console.error);
+  }, []);
+
   async function handleGenerateCode() {
     if (!selectedTeamId) return;
     try {
@@ -136,6 +153,10 @@ function AdminDashboard({ token, onLogout }: { token: string; onLogout: () => vo
       );
       setGeneratedCode(res.data.data.code);
       setCopiedCode(false);
+      // 발급 후 내역 갱신
+      api.get<{ success: boolean; data: CodeHistoryItem[] }>('/teams/codes')
+        .then((r) => setCodeHistory(r.data.data))
+        .catch(console.error);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: unknown } };
       console.error('[초대코드 발급 실패]', axiosErr.response?.data ?? err);
@@ -291,21 +312,67 @@ function AdminDashboard({ token, onLogout }: { token: string; onLogout: () => vo
                 </button>
 
                 {generatedCode && (
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center">
-                    <p className="text-xs text-indigo-500 mb-1">
+                  <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center">
+                    <p className="text-xs text-orange-500 mb-1">
                       {teams.find((t) => t.id === selectedTeamId)?.name} · 30일 유효
                     </p>
-                    <p className="text-2xl font-bold font-mono tracking-widest text-indigo-700">
+                    <p className="text-2xl font-bold font-mono tracking-widest text-orange-700">
                       {generatedCode}
                     </p>
                     <button
                       onClick={() => copyCode(generatedCode)}
-                      className="mt-3 text-sm text-indigo-500 underline"
+                      className="mt-3 text-sm text-orange-500 underline"
                     >
                       {copiedCode ? '복사됨!' : '클립보드에 복사'}
                     </button>
                   </div>
                 )}
+
+                {/* 최근 7일 발급내역 */}
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-500 mb-2">최근 7일 발급내역</h3>
+                  {codeHistory.length === 0 ? (
+                    <p className="text-center text-gray-300 py-4 text-xs">발급 내역이 없습니다</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {codeHistory.map((item) => (
+                        <div key={item.id} className="border border-gray-100 rounded-xl p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-mono text-sm font-bold tracking-widest text-orange-700">
+                              {item.code}
+                            </span>
+                            {item.usedBy ? (
+                              <span className="text-xs font-medium text-green-500 bg-green-50 px-2 py-0.5 rounded">
+                                가입 완료
+                              </span>
+                            ) : (
+                              <span className="text-xs font-medium text-gray-400 bg-gray-50 px-2 py-0.5 rounded">
+                                미사용
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400">{item.teamName}</p>
+                          <p className="text-xs text-gray-300 mt-0.5">
+                            {new Date(item.createdAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          {item.usedBy && (
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                                {item.usedBy.profileImageUrl ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={item.usedBy.profileImageUrl} alt={item.usedBy.nickname} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-orange-100" />
+                                )}
+                              </div>
+                              <span className="text-xs text-gray-600">{item.usedBy.nickname}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </>
             )}
           </div>

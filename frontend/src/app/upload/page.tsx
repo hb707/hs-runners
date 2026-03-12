@@ -8,7 +8,7 @@ import type { RunRecord } from '@/types';
 type UploadState = 'idle' | 'analyzing' | 'analyzed' | 'saving' | 'success' | 'failed';
 
 interface AnalyzeResult {
-  imageFilename: string;
+  imageUrl: string;
   distanceKm: number | null;
   recordedDate: string | null;
   visionRaw: string | null;
@@ -86,7 +86,7 @@ export default function UploadPage() {
 
     try {
       const res = await api.post<{ success: boolean; data: RunRecord }>('/records', {
-        imageFilename: analyzed.imageFilename,
+        imageUrl: analyzed.imageUrl,
         distanceKm: distanceKm != null && !isNaN(distanceKm) ? distanceKm : null,
         recordedAt,
         visionRaw: analyzed.visionRaw,

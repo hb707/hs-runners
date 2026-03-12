@@ -1,16 +1,20 @@
 import { ulid } from 'ulid';
-import path from 'path';
-import { upsertRecord, findRecordById, getRecordsByTeam, getRecordsByUser, deleteRecord as deleteRecordFromStore } from './storage.service';
+import { upsertRecord, findRecordById, getRecordsByTeam, getRecordsByUser, deleteRecord as deleteRecordFromStore, uploadToStorage } from './storage.service';
 import { analyzeRunningImage } from './vision.service';
 import { getISOWeekNumber } from '../utils/date.utils';
 import { AppError } from '../middleware/error.middleware';
 import type { RunRecord, VisionConfidence } from '../types';
 import type { CreateRecordInput } from '../validators/record.validator';
 
-export async function analyzeRecordImage(filePath: string) {
-  const visionResult = await analyzeRunningImage(filePath);
+export async function analyzeRecordImage(buffer: Buffer, originalName: string, mimetype: string) {
+  const ext = originalName.split('.').pop()?.toLowerCase() ?? 'jpg';
+  const filename = `rec_${ulid()}.${ext}`;
+  const [imageUrl, visionResult] = await Promise.all([
+    uploadToStorage('run-records', filename, buffer, mimetype),
+    analyzeRunningImage(buffer),
+  ]);
   return {
-    imageFilename: path.basename(filePath),
+    imageUrl,
     distanceKm: visionResult.distanceKm,
     recordedDate: visionResult.recordedDate,
     visionRaw: visionResult.visionRaw,
@@ -27,7 +31,7 @@ export async function createRecord(userId: string, teamId: string, input: Create
     id,
     userId,
     teamId,
-    imageUrl: `/uploads/${input.imageFilename}`,
+    imageUrl: input.imageUrl,
     distanceKm: input.distanceKm,
     visionRaw: input.visionRaw ?? null,
     visionConfidence: (input.visionConfidence ?? 'failed') as VisionConfidence,

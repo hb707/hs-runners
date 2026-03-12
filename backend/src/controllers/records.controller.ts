@@ -7,7 +7,7 @@ export async function analyzeImage(req: Request, res: Response, next: NextFuncti
     if (!req.file) throw new AppError(400, 'NO_FILE', 'Image file is required');
     if (!req.user!.teamId) throw new AppError(403, 'NO_TEAM', 'Must be in a team to upload records');
 
-    const result = await analyzeRecordImage(req.file.path);
+    const result = await analyzeRecordImage(req.file.buffer, req.file.originalname, req.file.mimetype);
     res.json({ success: true, data: result });
   } catch (err) {
     next(err);

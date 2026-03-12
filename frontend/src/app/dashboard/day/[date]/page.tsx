@@ -62,7 +62,7 @@ export default function DayPage() {
           {records.map((record) => {
             const member = memberMap.get(record.userId);
             const distance = record.manualDistanceKm ?? record.distanceKm;
-            const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${record.imageUrl}`;
+            const imageUrl = record.imageUrl;
 
             return (
               <div

@@ -1,7 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import fs from 'fs/promises';
 import sharp from 'sharp';
-import path from 'path';
 import { env } from '../config/env';
 import type { VisionConfidence } from '../types';
 
@@ -26,16 +24,16 @@ Rules:
 - rawText: the exact text you found showing the distance
 - recordedDate: the date shown in the screenshot in YYYY-MM-DD format. If only month/day is visible (e.g. "3/12" or "03.12"), assume the year is ${currentYear}. If no date is found, return null.`;
 
-async function resizeImage(imagePath: string): Promise<Buffer> {
-  return sharp(imagePath)
+async function resizeImage(inputBuffer: Buffer): Promise<Buffer> {
+  return sharp(inputBuffer)
     .resize({ width: 1500, height: 1500, fit: 'inside', withoutEnlargement: true })
     .jpeg({ quality: 70 })
     .toBuffer();
 }
 
-export async function analyzeRunningImage(imagePath: string): Promise<VisionResult> {
+export async function analyzeRunningImage(inputBuffer: Buffer): Promise<VisionResult> {
   try {
-    const imageBuffer = await resizeImage(imagePath);
+    const imageBuffer = await resizeImage(inputBuffer);
     const base64Image = imageBuffer.toString('base64');
 
     const response = await client.messages.create({
@@ -62,7 +60,7 @@ export async function analyzeRunningImage(imagePath: string): Promise<VisionResu
     const text = response.content[0].type === 'text' ? response.content[0].text : '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      return { distanceKm: null, visionRaw: text, visionConfidence: 'failed', recordedDate: null };
+      return { distanceKm: null, visionRaw: null, visionConfidence: 'failed', recordedDate: null };
     }
 
     const parsed = JSON.parse(jsonMatch[0]) as {

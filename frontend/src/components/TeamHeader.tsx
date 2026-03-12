@@ -1,12 +1,14 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
-import { Activity, UserCircle, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Activity, UserCircle, LogOut, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/lib/api';
 import type { Team, User } from '@/types';
 
 export default function TeamHeader() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [team, setTeam] = useState<Team | null>(null);
   const [memberCount, setMemberCount] = useState<number>(0);
   const [showMenu, setShowMenu] = useState(false);
@@ -53,19 +55,29 @@ export default function TeamHeader() {
           <button
             type="button"
             onClick={() => setShowMenu((v) => !v)}
-            className="p-1.5 text-neutral-500 hover:text-primary hover:bg-neutral-50 rounded-full transition-colors"
+            className="p-0.5 rounded-full overflow-hidden hover:ring-2 hover:ring-primary transition-all"
             aria-label="프로필 메뉴"
           >
-            <UserCircle className="w-5 h-5" strokeWidth={2} />
+            {user?.profileImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.profileImageUrl} alt="프로필" className="w-7 h-7 rounded-full object-cover" />
+            ) : (
+              <UserCircle className="w-7 h-7 text-neutral-500" strokeWidth={2} />
+            )}
           </button>
           {showMenu && (
-            <div className="absolute right-0 top-full mt-1 py-1 bg-white rounded-lg shadow-card border border-neutral-100 min-w-[120px] z-50">
+            <div className="absolute right-0 top-full mt-1 py-1 bg-white rounded-lg shadow-card border border-neutral-100 min-w-[130px] z-50">
               <button
                 type="button"
-                onClick={() => {
-                  setShowMenu(false);
-                  logout();
-                }}
+                onClick={() => { setShowMenu(false); router.push('/profile'); }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
+              >
+                <UserIcon className="w-4 h-4" strokeWidth={2} />
+                프로필
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowMenu(false); logout(); }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
               >
                 <LogOut className="w-4 h-4" strokeWidth={2} />

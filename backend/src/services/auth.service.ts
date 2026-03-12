@@ -97,7 +97,7 @@ export async function handleKakaoCallback(code: string): Promise<KakaoLoginResul
     };
   }
 
-  user = { ...user, nickname: profile.nickname, profileImageUrl: profile.profileImageUrl, updatedAt: now };
+  user = { ...user, updatedAt: now };
   await upsertUser(user);
 
   const payload: AuthTokenPayload = { userId: user.id, role: user.role, teamId: user.teamId };

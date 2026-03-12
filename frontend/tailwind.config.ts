@@ -5,7 +5,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: { DEFAULT: '#4F46E5', hover: '#4338CA' },
+        primary: { DEFAULT: '#FF6B00', hover: '#E55F00' },
         kakao: { DEFAULT: '#FEE500', text: '#191919' },
         success: '#10B981',
         warning: '#F59E0B',

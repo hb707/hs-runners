@@ -5,7 +5,7 @@ export const updateDistanceSchema = z.object({
 });
 
 export const createRecordSchema = z.object({
-  imageFilename: z.string().min(1),
+  imageUrl: z.string().url(),
   distanceKm: z.number().min(0).max(999).nullable(),
   recordedAt: z.string(),
   visionRaw: z.string().nullable().optional(),

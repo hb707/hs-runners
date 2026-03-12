@@ -74,37 +74,72 @@ export default function StatsPage() {
           {stats.length === 0 ? (
             <p className="text-center text-gray-400 py-10 text-sm">데이터가 없습니다</p>
           ) : (
-            stats.map((s) => (
-              <div key={s.userId} className={`bg-white border rounded-xl p-4 space-y-3 ${s.userId === user?.id ? 'border-primary' : 'border-gray-100'}`}>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
-                    {s.profileImageUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={s.profileImageUrl} alt={s.nickname} className="w-full h-full object-cover" />
-                    )}
+            <>
+              {/* 팀 전체 합산 */}
+              {(() => {
+                const total = stats.reduce(
+                  (acc, s) => ({
+                    totalRecords: acc.totalRecords + s.totalRecords,
+                    totalKm: acc.totalKm + s.totalKm,
+                    unpaidFineAmount: acc.unpaidFineAmount + s.unpaidFineAmount,
+                  }),
+                  { totalRecords: 0, totalKm: 0, unpaidFineAmount: 0 },
+                );
+                return (
+                  <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-3">
+                    <span className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">팀 전체</span>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-xl font-bold text-orange-700">{total.totalRecords}</p>
+                        <p className="text-xs text-orange-400">인증 횟수</p>
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-orange-700">{total.totalKm.toFixed(1)}</p>
+                        <p className="text-xs text-orange-400">총 km</p>
+                      </div>
+                      <div>
+                        <p className={`text-xl font-bold ${total.unpaidFineAmount > 0 ? 'text-red-500' : 'text-orange-700'}`}>
+                          {total.unpaidFineAmount > 0 ? `${(total.unpaidFineAmount / 10000).toFixed(1)}만` : '0'}
+                        </p>
+                        <p className="text-xs text-orange-400">미납 벌금</p>
+                      </div>
+                    </div>
                   </div>
-                  <span className="font-medium text-sm">{s.nickname}</span>
-                  {s.userId === user?.id && <span className="text-xs text-primary bg-indigo-50 px-1.5 py-0.5 rounded">나</span>}
-                </div>
+                );
+              })()}
 
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <p className="text-xl font-bold text-gray-900">{s.totalRecords}</p>
-                    <p className="text-xs text-gray-400">인증 횟수</p>
+              {/* 개인별 */}
+              {stats.map((s) => (
+                <div key={s.userId} className={`bg-white border rounded-xl p-4 space-y-3 ${s.userId === user?.id ? 'border-primary' : 'border-gray-100'}`}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+                      {s.profileImageUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={s.profileImageUrl} alt={s.nickname} className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                    <span className="font-medium text-sm">{s.nickname}</span>
+                    {s.userId === user?.id && <span className="text-xs text-primary bg-orange-50 px-1.5 py-0.5 rounded">나</span>}
                   </div>
-                  <div>
-                    <p className="text-xl font-bold text-gray-900">{s.totalKm.toFixed(1)}</p>
-                    <p className="text-xs text-gray-400">총 km</p>
-                  </div>
-                  <div>
-                    <p className={`text-xl font-bold ${s.unpaidFineAmount > 0 ? 'text-red-500' : 'text-gray-900'}`}>
-                      {s.unpaidFineAmount > 0 ? `${(s.unpaidFineAmount / 10000).toFixed(1)}만` : '0'}
-                    </p>
-                    <p className="text-xs text-gray-400">미납 벌금</p>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <p className="text-xl font-bold text-gray-900">{s.totalRecords}</p>
+                      <p className="text-xs text-gray-400">인증 횟수</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-gray-900">{s.totalKm.toFixed(1)}</p>
+                      <p className="text-xs text-gray-400">총 km</p>
+                    </div>
+                    <div>
+                      <p className={`text-xl font-bold ${s.unpaidFineAmount > 0 ? 'text-red-500' : 'text-gray-900'}`}>
+                        {s.unpaidFineAmount > 0 ? `${(s.unpaidFineAmount / 10000).toFixed(1)}만` : '0'}
+                      </p>
+                      <p className="text-xs text-gray-400">미납 벌금</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </>
           )}
         </div>
       )}

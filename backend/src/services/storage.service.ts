@@ -64,6 +64,16 @@ type FineRow = {
   created_at: string;
 };
 
+export async function uploadToStorage(bucket: string, filename: string, buffer: Buffer, mimetype: string): Promise<string> {
+  const { error } = await supabase.storage.from(bucket).upload(filename, buffer, {
+    contentType: mimetype,
+    upsert: true,
+  });
+  if (error) throwDbError(error, `Failed to upload to storage bucket: ${bucket}`);
+  const { data } = supabase.storage.from(bucket).getPublicUrl(filename);
+  return data.publicUrl;
+}
+
 function throwDbError(error: unknown, fallbackMessage: string): never {
   if (error && typeof error === 'object' && 'message' in error) {
     throw new AppError(500, 'DB_ERROR', String((error as { message: string }).message));
