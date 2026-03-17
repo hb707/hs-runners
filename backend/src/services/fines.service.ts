@@ -84,13 +84,19 @@ export async function markFinePaid(fineId: string, confirmedBy: string, requeste
   return updated;
 }
 
-export async function getTeamStats(teamId: string, month?: string, year?: string) {
+export async function getTeamStats(teamId: string, month?: string, year?: string, week?: string) {
   const [users, allRecords, allFines] = await Promise.all([getUsers(), getRecords(), getFinesByTeam(teamId)]);
   const teamMembers = users.filter((u) => u.teamId === teamId);
+
+  const weekBounds = week ? getWeekBoundaries(week) : null;
 
   const stats = teamMembers.map((member) => {
     const memberRecords = allRecords.filter((r) => {
       if (r.userId !== member.id) return false;
+      if (weekBounds) {
+        const d = new Date(r.recordedAt);
+        return d >= weekBounds.start && d <= weekBounds.end;
+      }
       if (month) return r.recordedAt.startsWith(month);
       if (year) return r.recordedAt.startsWith(year);
       return true;
@@ -98,6 +104,7 @@ export async function getTeamStats(teamId: string, month?: string, year?: string
 
     const memberFines = allFines.filter((f) => {
       if (f.userId !== member.id) return false;
+      if (week) return f.weekNumber === week;
       if (month) return f.weekNumber.startsWith(month.slice(0, 4));
       if (year) return f.weekNumber.startsWith(year);
       return true;

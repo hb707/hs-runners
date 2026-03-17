@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import Image from 'next/image';
 import api from '@/lib/api';
 import type { RunRecord } from '@/types';
 
@@ -49,9 +48,8 @@ export default function RecordDetailPage() {
       </div>
 
       {/* Photo */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', backgroundColor: '#16161C' }}>
-        <Image src={imageUrl} alt="러닝 인증사진" fill style={{ objectFit: 'cover' }} unoptimized />
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={imageUrl} alt="러닝 인증사진" style={{ width: '100%', height: 'auto', display: 'block' }} />
 
       {/* Info card overlapping photo */}
       <div style={{

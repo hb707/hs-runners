@@ -5,12 +5,43 @@ import { useAuth } from '@/hooks/useAuth';
 import type { UserStats } from '@/types';
 import Avatar, { MEMBER_COLORS } from '@/components/Avatar';
 
+function getISOWeek(date: Date): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+function getWeekBounds(weekStr: string): { start: Date; end: Date } {
+  const [year, week] = weekStr.split('-W').map(Number);
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const jan4Day = jan4.getUTCDay() || 7;
+  const monday = new Date(jan4.getTime() - (jan4Day - 1) * 86400000 + (week - 1) * 7 * 86400000);
+  const sunday = new Date(monday.getTime() + 6 * 86400000);
+  return { start: monday, end: sunday };
+}
+
+function formatWeekLabel(weekStr: string): string {
+  const { start, end } = getWeekBounds(weekStr);
+  const fmt = (d: Date) => `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+  return `${fmt(start)}~${fmt(end)}`;
+}
+
+function addWeeks(weekStr: string, delta: number): string {
+  const { start } = getWeekBounds(weekStr);
+  const newDate = new Date(start.getTime() + delta * 7 * 86400000);
+  return getISOWeek(newDate);
+}
+
 export default function StatsPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState<UserStats[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
+  const [viewMode, setViewMode] = useState<'week' | 'month' | 'year'>('week');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentWeek, setCurrentWeek] = useState(() => getISOWeek(new Date()));
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -20,22 +51,34 @@ export default function StatsPage() {
     if (!user?.teamId) return;
 
     setLoading(true);
-    const query = viewMode === 'month' ? `month=${monthStr}` : `year=${year}`;
+    let query = '';
+    if (viewMode === 'week') query = `week=${currentWeek}`;
+    else if (viewMode === 'month') query = `month=${monthStr}`;
+    else query = `year=${year}`;
+
     api.get<{ success: boolean; data: UserStats[] }>(`/stats/team/${user.teamId}?${query}`)
       .then((res) => setStats(res.data.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [user?.teamId, viewMode, monthStr, year]);
+  }, [user?.teamId, viewMode, currentWeek, monthStr, year]);
 
   const prevPeriod = () => {
-    if (viewMode === 'month') setCurrentDate(new Date(year, month - 2, 1));
+    if (viewMode === 'week') setCurrentWeek((w) => addWeeks(w, -1));
+    else if (viewMode === 'month') setCurrentDate(new Date(year, month - 2, 1));
     else setCurrentDate(new Date(year - 1, 0, 1));
   };
 
   const nextPeriod = () => {
-    if (viewMode === 'month') setCurrentDate(new Date(year, month, 1));
+    if (viewMode === 'week') setCurrentWeek((w) => addWeeks(w, 1));
+    else if (viewMode === 'month') setCurrentDate(new Date(year, month, 1));
     else setCurrentDate(new Date(year + 1, 0, 1));
   };
+
+  const periodLabel = viewMode === 'week'
+    ? formatWeekLabel(currentWeek)
+    : viewMode === 'month'
+      ? `${year}.${String(month).padStart(2, '0')}`
+      : `${year}년`;
 
   const card: React.CSSProperties = {
     backgroundColor: '#16161C', borderRadius: '18px', border: '1px solid #252530', padding: '16px',
@@ -50,29 +93,25 @@ export default function StatsPage() {
         {/* Period toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ display: 'flex', backgroundColor: '#1A1A22', borderRadius: '10px', padding: '3px', gap: '2px' }}>
-            <button
-              onClick={() => setViewMode('month')}
-              style={{
-                padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
-                border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                backgroundColor: viewMode === 'month' ? '#FF6B00' : 'transparent',
-                color: viewMode === 'month' ? '#FFFFFF' : '#5A5A72',
-              }}
-            >월별</button>
-            <button
-              onClick={() => setViewMode('year')}
-              style={{
-                padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
-                border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                backgroundColor: viewMode === 'year' ? '#FF6B00' : 'transparent',
-                color: viewMode === 'year' ? '#FFFFFF' : '#5A5A72',
-              }}
-            >연별</button>
+            {(['week', 'month', 'year'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                style={{
+                  padding: '5px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                  border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                  backgroundColor: viewMode === mode ? '#FF6B00' : 'transparent',
+                  color: viewMode === mode ? '#FFFFFF' : '#5A5A72',
+                }}
+              >
+                {mode === 'week' ? '주별' : mode === 'month' ? '월별' : '연별'}
+              </button>
+            ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button onClick={prevPeriod} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5A5A72', fontSize: '16px', padding: '0 2px' }}>‹</button>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#C8C8D8', minWidth: '60px', textAlign: 'center' }}>
-              {viewMode === 'month' ? `${year}.${String(month).padStart(2, '0')}` : `${year}년`}
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#C8C8D8', minWidth: '70px', textAlign: 'center' }}>
+              {periodLabel}
             </span>
             <button onClick={nextPeriod} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5A5A72', fontSize: '16px', padding: '0 2px' }}>›</button>
           </div>

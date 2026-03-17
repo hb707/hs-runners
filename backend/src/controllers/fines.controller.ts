@@ -56,7 +56,8 @@ export async function teamStats(req: Request, res: Response, next: NextFunction)
     }
     const month = req.query.month as string | undefined;
     const year = req.query.year as string | undefined;
-    const stats = await getTeamStats(teamId, month, year);
+    const week = req.query.week as string | undefined;
+    const stats = await getTeamStats(teamId, month, year, week);
     res.json({ success: true, data: stats });
   } catch (err) {
     next(err);
