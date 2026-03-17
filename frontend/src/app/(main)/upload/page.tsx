@@ -109,7 +109,7 @@ export default function UploadPage() {
   return (
     <div style={{
       backgroundColor: '#0D0D10',
-      minHeight: '100dvh',
+      minHeight: '100%',
       color: '#fff',
       display: 'flex',
       flexDirection: 'column',

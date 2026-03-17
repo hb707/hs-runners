@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import type { UserStats } from '@/types';
+import Avatar, { MEMBER_COLORS } from '@/components/Avatar';
 
 export default function StatsPage() {
   const { user } = useAuth();
@@ -122,18 +123,18 @@ export default function StatsPage() {
               })()}
 
               {/* 개인별 */}
-              {stats.map((s) => (
+              {stats.map((s, i) => (
                 <div key={s.userId} style={{
                   ...card,
                   border: s.userId === user?.id ? '1.5px solid rgba(255,107,0,0.4)' : '1px solid #252530',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', overflow: 'hidden', backgroundColor: '#252530', flexShrink: 0 }}>
-                      {s.profileImageUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={s.profileImageUrl} alt={s.nickname} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      )}
-                    </div>
+                    <Avatar
+                      profileImageUrl={s.profileImageUrl}
+                      nickname={s.nickname}
+                      color={MEMBER_COLORS[i % MEMBER_COLORS.length]}
+                      size={34}
+                    />
                     <span style={{ fontWeight: 600, fontSize: '14px', color: '#C8C8D8', flex: 1 }}>{s.nickname}</span>
                     {s.userId === user?.id && (
                       <span style={{ fontSize: '10px', color: '#FF6B00', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.25)', padding: '2px 8px', borderRadius: '20px', fontWeight: 700 }}>나</span>

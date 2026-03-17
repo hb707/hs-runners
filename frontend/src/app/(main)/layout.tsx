@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Camera, CalendarDays, BarChart2 } from 'lucide-react';
+import TeamHeader from '@/components/TeamHeader';
 
 const tabs = [
   { href: '/upload', Icon: Camera, label: '인증' },
@@ -9,11 +10,12 @@ const tabs = [
   { href: '/dashboard/stats', Icon: BarChart2, label: '통계' },
 ];
 
-export default function UploadLayout({ children }: { children: React.ReactNode }) {
+export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', backgroundColor: '#0D0D10' }}>
+      <TeamHeader />
       <main style={{ flex: 1, paddingBottom: '64px' }}>{children}</main>
 
       <nav style={{

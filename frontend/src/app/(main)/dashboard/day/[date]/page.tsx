@@ -3,10 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import api from '@/lib/api';
 import type { RunRecord, User } from '@/types';
-
-function getInitials(nickname: string) {
-  return nickname.slice(0, 1).toUpperCase();
-}
+import Avatar, { MEMBER_COLORS } from '@/components/Avatar';
 
 export default function DayPage() {
   const { date } = useParams<{ date: string }>();
@@ -35,6 +32,7 @@ export default function DayPage() {
   }, [date, month]);
 
   const memberMap = new Map(members.map((m) => [m.id, m]));
+  const memberColorMap = new Map<string, string>(members.map((m, i) => [m.id, MEMBER_COLORS[i % MEMBER_COLORS.length]]));
 
   const displayDate = date
     ? new Date(date + 'T00:00:00').toLocaleDateString('ko-KR', {
@@ -81,14 +79,12 @@ export default function DayPage() {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', overflow: 'hidden', backgroundColor: 'rgba(255,107,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      {member?.profileImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={member.profileImageUrl} alt={member.nickname} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#FF6B00' }}>{getInitials(member?.nickname ?? '?')}</span>
-                      )}
-                    </div>
+                    <Avatar
+                      profileImageUrl={member?.profileImageUrl}
+                      nickname={member?.nickname ?? '?'}
+                      color={memberColorMap.get(record.userId) ?? MEMBER_COLORS[0]}
+                      size={24}
+                    />
                     <span style={{ fontSize: '13px', fontWeight: 500, color: '#C8C8D8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {member?.nickname ?? '알 수 없음'}
                     </span>

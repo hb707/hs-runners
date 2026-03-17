@@ -4,18 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import api from '@/lib/api';
 import type { RunRecord, User } from '@/types';
-
-const MEMBER_COLORS = [
-  '#818CF8', '#F472B6', '#34D399', '#FBBF24',
-  '#A78BFA', '#F87171', '#60A5FA', '#FB923C',
-];
-
-function getInitials(nickname: string): string {
-  if (!nickname?.trim()) return '?';
-  const parts = nickname.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase().slice(0, 2);
-  return nickname.slice(0, 2).toUpperCase();
-}
+import Avatar, { MEMBER_COLORS } from '@/components/Avatar';
 
 function getYearMonth(year: number, month: number) {
   return `${year}-${String(month).padStart(2, '0')}`;
@@ -192,18 +181,12 @@ export default function CalendarPage() {
                       cursor: 'pointer', background: 'none',
                     }}
                   >
-                    {member?.profileImageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={member.profileImageUrl} alt={member.nickname} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                    ) : (
-                      <span style={{
-                        width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
-                        backgroundColor: color, color: '#0D0D10', fontSize: '11px',
-                        fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        {getInitials(member?.nickname ?? '?')}
-                      </span>
-                    )}
+                    <Avatar
+                      profileImageUrl={member?.profileImageUrl}
+                      nickname={member?.nickname ?? '?'}
+                      color={color}
+                      size={32}
+                    />
                     <span style={{ flex: 1, fontSize: '13px', color: '#C8C8D8', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {member?.nickname ?? '알 수 없음'}
                     </span>
@@ -225,19 +208,13 @@ export default function CalendarPage() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {members.map((m, i) => (
               <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {m.profileImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={m.profileImageUrl} alt={m.nickname} style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${MEMBER_COLORS[i % MEMBER_COLORS.length]}` }} />
-                ) : (
-                  <span style={{
-                    width: '26px', height: '26px', borderRadius: '50%',
-                    backgroundColor: MEMBER_COLORS[i % MEMBER_COLORS.length],
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '10px', fontWeight: 700, color: '#0D0D10', flexShrink: 0,
-                  }}>
-                    {getInitials(m.nickname)}
-                  </span>
-                )}
+                <Avatar
+                  profileImageUrl={m.profileImageUrl}
+                  nickname={m.nickname}
+                  color={MEMBER_COLORS[i % MEMBER_COLORS.length]}
+                  size={26}
+                  showBorder
+                />
                 <span style={{ fontSize: '12px', color: '#5A5A72', maxWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nickname}</span>
               </div>
             ))}
