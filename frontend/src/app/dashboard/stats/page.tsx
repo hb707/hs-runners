@@ -36,46 +36,59 @@ export default function StatsPage() {
     else setCurrentDate(new Date(year + 1, 0, 1));
   };
 
+  const card: React.CSSProperties = {
+    backgroundColor: '#16161C', borderRadius: '18px', border: '1px solid #252530', padding: '16px',
+  };
+
   return (
-    <div className="flex flex-col">
+    <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#0D0D10', minHeight: '100%' }}>
       {/* Header */}
-      <div className="px-4 py-4 border-b">
-        <h1 className="text-base font-bold">통계</h1>
+      <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #1A1A22', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '22px', fontWeight: 800, color: '#E8E8F0', letterSpacing: '-0.01em' }}>통계</h1>
+
+        {/* Period toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', backgroundColor: '#1A1A22', borderRadius: '10px', padding: '3px', gap: '2px' }}>
+            <button
+              onClick={() => setViewMode('month')}
+              style={{
+                padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                backgroundColor: viewMode === 'month' ? '#FF6B00' : 'transparent',
+                color: viewMode === 'month' ? '#FFFFFF' : '#5A5A72',
+              }}
+            >월별</button>
+            <button
+              onClick={() => setViewMode('year')}
+              style={{
+                padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                backgroundColor: viewMode === 'year' ? '#FF6B00' : 'transparent',
+                color: viewMode === 'year' ? '#FFFFFF' : '#5A5A72',
+              }}
+            >연별</button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button onClick={prevPeriod} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5A5A72', fontSize: '16px', padding: '0 2px' }}>‹</button>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#C8C8D8', minWidth: '60px', textAlign: 'center' }}>
+              {viewMode === 'month' ? `${year}.${String(month).padStart(2, '0')}` : `${year}년`}
+            </span>
+            <button onClick={nextPeriod} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5A5A72', fontSize: '16px', padding: '0 2px' }}>›</button>
+          </div>
+        </div>
       </div>
 
-      {/* Period selector */}
-      <div className="flex items-center px-4 py-3 gap-2 border-b">
-        <div className="flex bg-gray-100 rounded-lg p-0.5">
-          <button
-            onClick={() => setViewMode('month')}
-            className={`px-3 py-1 text-sm rounded-md transition-colors ${viewMode === 'month' ? 'bg-white font-medium shadow-sm' : 'text-gray-500'}`}
-          >월별</button>
-          <button
-            onClick={() => setViewMode('year')}
-            className={`px-3 py-1 text-sm rounded-md transition-colors ${viewMode === 'year' ? 'bg-white font-medium shadow-sm' : 'text-gray-500'}`}
-          >연별</button>
-        </div>
-        <div className="flex items-center gap-2 ml-auto">
-          <button onClick={prevPeriod} className="text-gray-400 px-1">←</button>
-          <span className="text-sm font-medium">
-            {viewMode === 'month' ? `${year}.${String(month).padStart(2, '0')}` : `${year}년`}
-          </span>
-          <button onClick={nextPeriod} className="text-gray-400 px-1">→</button>
-        </div>
-      </div>
-
-      {/* Stats table */}
       {loading ? (
-        <div className="flex-1 flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0' }}>
+          <div style={{ width: '24px', height: '24px', border: '2px solid rgba(255,107,0,0.2)', borderTopColor: '#FF6B00', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
         </div>
       ) : (
-        <div className="px-4 py-3 space-y-3">
+        <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {stats.length === 0 ? (
-            <p className="text-center text-gray-400 py-10 text-sm">데이터가 없습니다</p>
+            <p style={{ textAlign: 'center', color: '#3A3A4A', padding: '40px 0', fontSize: '14px' }}>데이터가 없습니다</p>
           ) : (
             <>
-              {/* 팀 전체 합산 */}
+              {/* 팀 전체 */}
               {(() => {
                 const total = stats.reduce(
                   (acc, s) => ({
@@ -86,22 +99,22 @@ export default function StatsPage() {
                   { totalRecords: 0, totalKm: 0, unpaidFineAmount: 0 },
                 );
                 return (
-                  <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-3">
-                    <span className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded">팀 전체</span>
-                    <div className="grid grid-cols-3 gap-2 text-center">
+                  <div style={{ ...card, background: 'linear-gradient(135deg, rgba(255,107,0,0.12) 0%, rgba(255,107,0,0.04) 100%)', border: '1px solid rgba(255,107,0,0.25)' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#FF6B00', background: 'rgba(255,107,0,0.12)', padding: '3px 10px', borderRadius: '20px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>팀 전체</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center', marginTop: '14px' }}>
                       <div>
-                        <p className="text-xl font-bold text-orange-700">{total.totalRecords}</p>
-                        <p className="text-xs text-orange-400">인증 횟수</p>
+                        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '28px', fontWeight: 900, color: '#FF6B00', lineHeight: 1 }}>{total.totalRecords}</p>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,107,0,0.6)', marginTop: '3px' }}>인증 횟수</p>
                       </div>
                       <div>
-                        <p className="text-xl font-bold text-orange-700">{total.totalKm.toFixed(1)}</p>
-                        <p className="text-xs text-orange-400">총 km</p>
+                        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '28px', fontWeight: 900, color: '#FF6B00', lineHeight: 1 }}>{total.totalKm.toFixed(1)}</p>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,107,0,0.6)', marginTop: '3px' }}>총 km</p>
                       </div>
                       <div>
-                        <p className={`text-xl font-bold ${total.unpaidFineAmount > 0 ? 'text-red-500' : 'text-orange-700'}`}>
+                        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '28px', fontWeight: 900, color: total.unpaidFineAmount > 0 ? '#EF4444' : '#FF6B00', lineHeight: 1 }}>
                           {total.unpaidFineAmount > 0 ? `${(total.unpaidFineAmount / 10000).toFixed(1)}만` : '0'}
                         </p>
-                        <p className="text-xs text-orange-400">미납 벌금</p>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,107,0,0.6)', marginTop: '3px' }}>미납 벌금</p>
                       </div>
                     </div>
                   </div>
@@ -110,31 +123,36 @@ export default function StatsPage() {
 
               {/* 개인별 */}
               {stats.map((s) => (
-                <div key={s.userId} className={`bg-white border rounded-xl p-4 space-y-3 ${s.userId === user?.id ? 'border-primary' : 'border-gray-100'}`}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+                <div key={s.userId} style={{
+                  ...card,
+                  border: s.userId === user?.id ? '1.5px solid rgba(255,107,0,0.4)' : '1px solid #252530',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', overflow: 'hidden', backgroundColor: '#252530', flexShrink: 0 }}>
                       {s.profileImageUrl && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={s.profileImageUrl} alt={s.nickname} className="w-full h-full object-cover" />
+                        <img src={s.profileImageUrl} alt={s.nickname} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       )}
                     </div>
-                    <span className="font-medium text-sm">{s.nickname}</span>
-                    {s.userId === user?.id && <span className="text-xs text-primary bg-orange-50 px-1.5 py-0.5 rounded">나</span>}
+                    <span style={{ fontWeight: 600, fontSize: '14px', color: '#C8C8D8', flex: 1 }}>{s.nickname}</span>
+                    {s.userId === user?.id && (
+                      <span style={{ fontSize: '10px', color: '#FF6B00', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.25)', padding: '2px 8px', borderRadius: '20px', fontWeight: 700 }}>나</span>
+                    )}
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
                     <div>
-                      <p className="text-xl font-bold text-gray-900">{s.totalRecords}</p>
-                      <p className="text-xs text-gray-400">인증 횟수</p>
+                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '24px', fontWeight: 800, color: '#E8E8F0', lineHeight: 1 }}>{s.totalRecords}</p>
+                      <p style={{ fontSize: '10px', color: '#3A3A4A', marginTop: '3px' }}>인증 횟수</p>
                     </div>
                     <div>
-                      <p className="text-xl font-bold text-gray-900">{s.totalKm.toFixed(1)}</p>
-                      <p className="text-xs text-gray-400">총 km</p>
+                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '24px', fontWeight: 800, color: '#E8E8F0', lineHeight: 1 }}>{s.totalKm.toFixed(1)}</p>
+                      <p style={{ fontSize: '10px', color: '#3A3A4A', marginTop: '3px' }}>총 km</p>
                     </div>
                     <div>
-                      <p className={`text-xl font-bold ${s.unpaidFineAmount > 0 ? 'text-red-500' : 'text-gray-900'}`}>
+                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '24px', fontWeight: 800, color: s.unpaidFineAmount > 0 ? '#EF4444' : '#E8E8F0', lineHeight: 1 }}>
                         {s.unpaidFineAmount > 0 ? `${(s.unpaidFineAmount / 10000).toFixed(1)}만` : '0'}
                       </p>
-                      <p className="text-xs text-gray-400">미납 벌금</p>
+                      <p style={{ fontSize: '10px', color: '#3A3A4A', marginTop: '3px' }}>미납 벌금</p>
                     </div>
                   </div>
                 </div>

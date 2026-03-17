@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Camera, CheckCircle2, Sparkles } from 'lucide-react';
+import { Camera, CheckCircle2, Sparkles, MapPin, CalendarDays } from 'lucide-react';
 import api from '@/lib/api';
 import type { RunRecord } from '@/types';
 
@@ -26,7 +26,7 @@ function getStepIndex(state: UploadState): number {
   if (state === 'idle' || state === 'failed') return 0;
   if (state === 'analyzing') return 1;
   if (state === 'analyzed' || state === 'saving') return 2;
-  return 3; // success
+  return 3;
 }
 
 export default function UploadPage() {
@@ -104,174 +104,538 @@ export default function UploadPage() {
 
   const effectiveKm = result?.manualDistanceKm ?? result?.distanceKm;
   const stepIndex = getStepIndex(state);
+  const isLoading = state === 'analyzing' || state === 'saving';
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col px-4 py-5">
-      <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 p-4">
-        <div className="flex items-center justify-between">
-          {STEPS.map((step, index) => {
-            const isActive = index === stepIndex;
-            const isDone = index < stepIndex;
-            return (
-              <div key={step.key} className="flex items-center flex-1 last:flex-none">
-                <div className="flex flex-col items-center gap-1">
-                  <span
-                    className={`w-7 h-7 rounded-full inline-flex items-center justify-center text-xs font-semibold ${
-                      isDone
-                        ? 'bg-primary text-white'
-                        : isActive
-                          ? 'bg-primary/10 text-primary border border-primary/30'
-                          : 'bg-neutral-100 text-neutral-400'
-                    }`}
-                  >
-                    {isDone ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
-                  </span>
-                  <span className={`text-[11px] ${isActive ? 'text-primary font-semibold' : 'text-neutral-400'}`}>
-                    {step.label}
-                  </span>
-                </div>
-                {index !== STEPS.length - 1 && (
-                  <div className={`h-[2px] flex-1 mx-2 ${index < stepIndex ? 'bg-primary' : 'bg-neutral-200'}`} />
-                )}
-              </div>
-            );
-          })}
+    <div style={{
+      backgroundColor: '#0D0D10',
+      minHeight: '100dvh',
+      color: '#fff',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      position: 'relative',
+    }}>
+      {/* Ambient glow blobs */}
+      <div style={{
+        position: 'absolute',
+        top: '-80px',
+        right: '-60px',
+        width: '260px',
+        height: '260px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,107,0,0.14) 0%, transparent 65%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '100px',
+        left: '-100px',
+        width: '220px',
+        height: '220px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,107,0,0.07) 0%, transparent 65%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Header */}
+      <div style={{ padding: '22px 22px 0', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+          <p style={{
+            fontSize: '10px',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: '#FF6B00',
+            fontWeight: 700,
+            fontFamily: "'Barlow Condensed', sans-serif",
+          }}>
+            TEAM RUNNER
+          </p>
+          {/* Step pills */}
+          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+            {STEPS.map((step, index) => (
+              <div key={step.key} style={{
+                height: '6px',
+                width: index === stepIndex ? '22px' : '6px',
+                borderRadius: '3px',
+                backgroundColor: index < stepIndex ? '#FF6B00' : index === stepIndex ? '#FF6B00' : '#252530',
+                opacity: index < stepIndex ? 0.5 : 1,
+                transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              }} />
+            ))}
+          </div>
         </div>
+        <h1 style={{
+          fontSize: '28px',
+          fontWeight: 900,
+          fontFamily: "'Barlow Condensed', sans-serif",
+          letterSpacing: '-0.01em',
+          lineHeight: 1.1,
+          transition: 'all 0.3s ease',
+        }}>
+          {state === 'success' ? '인증 완료!' : state === 'analyzed' ? '정보 확인' : '오늘의 러닝'}
+        </h1>
+        <p style={{ fontSize: '13px', color: '#5A5A72', marginTop: '3px' }}>
+          {state === 'success'
+            ? '훌륭한 러닝이었어요'
+            : state === 'analyzed'
+              ? 'AI가 인식한 정보를 확인하세요'
+              : '러닝 기록 사진을 올려주세요'}
+        </p>
       </div>
 
-      <div className="flex-1 flex flex-col items-center py-5 gap-4">
-        <div
-          onClick={() => (state === 'idle' || state === 'failed') ? inputRef.current?.click() : undefined}
-          className={`relative w-full aspect-[4/5] max-h-[52vh] bg-white rounded-3xl flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 overflow-hidden shadow-sm ${
-            state === 'idle' || state === 'failed' ? 'cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors' : ''
-          }`}
-        >
-          {preview ? (
-            <Image src={preview} alt="preview" fill className="object-contain" />
-          ) : (
-            <div className="flex flex-col items-center text-center px-6">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3">
-                <Camera className="w-7 h-7 text-primary" />
+      {/* Scrollable content */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '18px 22px',
+        gap: '14px',
+        position: 'relative',
+        zIndex: 1,
+        overflowY: 'auto',
+      }}>
+        {/* Upload / preview zone */}
+        {state !== 'success' && (
+          <div
+            onClick={() => (state === 'idle' || state === 'failed') ? inputRef.current?.click() : undefined}
+            style={{
+              position: 'relative',
+              width: '100%',
+              aspectRatio: '4/5',
+              maxHeight: '48vh',
+              borderRadius: '26px',
+              overflow: 'hidden',
+              cursor: (state === 'idle' || state === 'failed') ? 'pointer' : 'default',
+              backgroundColor: '#16161C',
+              border: preview
+                ? '1.5px solid #252530'
+                : state === 'failed'
+                  ? '1.5px dashed rgba(239,68,68,0.5)'
+                  : '1.5px dashed rgba(255,107,0,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {preview ? (
+              <Image src={preview} alt="preview" fill style={{ objectFit: 'contain' }} />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', padding: '32px 24px' }}>
+                {/* Concentric ring icon */}
+                <div style={{ position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{
+                    position: 'absolute',
+                    inset: '-20px',
+                    borderRadius: '50%',
+                    border: '1px solid rgba(255,107,0,0.15)',
+                    animation: 'upload-ring-pulse 2.8s ease-in-out infinite',
+                  }} />
+                  <div style={{
+                    position: 'absolute',
+                    inset: '-8px',
+                    borderRadius: '50%',
+                    border: '1px solid rgba(255,107,0,0.28)',
+                    animation: 'upload-ring-pulse 2.8s ease-in-out infinite 0.5s',
+                  }} />
+                  <div style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(255,107,0,0.18) 0%, rgba(255,107,0,0.06) 100%)',
+                    border: '1.5px solid rgba(255,107,0,0.45)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Camera style={{ width: '30px', height: '30px', color: '#FF6B00' }} />
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: '15px', fontWeight: 700, color: '#E8E8F0', marginBottom: '5px' }}>
+                    {state === 'failed' ? '업로드 실패' : '러닝 기록 이미지 업로드'}
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#5A5A72', lineHeight: 1.5 }}>
+                    {state === 'failed'
+                      ? '사진을 다시 선택해주세요'
+                      : '트래킹 앱 캡처 또는\n워치 기록 사진을 권장해요'}
+                  </p>
+                </div>
               </div>
-              <p className="text-sm font-semibold text-neutral-800">러닝 기록 이미지를 업로드하세요</p>
-              <p className="text-xs text-neutral-500 mt-1">트래킹 앱 캡처 또는 워치 기록 사진을 권장해요</p>
-            </div>
-          )}
-        </div>
+            )}
 
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-
-        {/* Analyzed: editable form */}
-        {state === 'analyzed' && analyzed && (
-          <div className="w-full space-y-3 bg-white rounded-2xl p-4 border border-neutral-100 shadow-sm">
-            <div className="flex flex-col gap-1 min-w-0">
-              <label className="text-sm font-medium text-neutral-700">러닝 날짜</label>
-              <input
-                type="date"
-                value={dateInput}
-                onChange={(e) => setDateInput(e.target.value)}
-                className="w-full max-w-full appearance-none border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary bg-surface"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-neutral-700">거리 (km)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={kmInput}
-                onChange={(e) => setKmInput(e.target.value)}
-                placeholder="예: 5.23"
-                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary bg-surface"
-              />
-            </div>
-            {analyzed.visionConfidence === 'failed' && (
-              <p className="text-xs text-warning">사진에서 정보를 자동 인식하지 못했습니다. 직접 입력해주세요.</p>
+            {/* Analyzing overlay */}
+            {state === 'analyzing' && (
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundColor: 'rgba(13,13,16,0.88)',
+                backdropFilter: 'blur(6px)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '18px',
+              }}>
+                <div style={{ position: 'relative', width: '64px', height: '64px' }}>
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '50%',
+                    border: '2px solid rgba(255,107,0,0.15)',
+                  }} />
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '50%',
+                    border: '2px solid transparent',
+                    borderTopColor: '#FF6B00',
+                    animation: 'spin 0.9s linear infinite',
+                  }} />
+                  <div style={{
+                    position: 'absolute',
+                    inset: '12px',
+                    borderRadius: '50%',
+                    background: 'rgba(255,107,0,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Sparkles style={{ width: '18px', height: '18px', color: '#FF6B00' }} />
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: '15px', fontWeight: 700, color: '#E8E8F0' }}>AI 분석 중...</p>
+                  <p style={{ fontSize: '12px', color: '#5A5A72', marginTop: '3px' }}>거리와 날짜를 읽고 있어요</p>
+                </div>
+              </div>
             )}
           </div>
         )}
 
-        {/* Success result */}
+        {/* Success screen */}
         {state === 'success' && result && (
-          <div className="w-full p-5 bg-gradient-to-b from-primary/10 to-primary/5 rounded-2xl border border-primary/20 text-center">
-            {effectiveKm != null ? (
-              <>
-                <div className="inline-flex items-center gap-1 text-primary mb-1">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-xs font-semibold">인증 완료</span>
-                </div>
-                <p className="text-5xl font-black tracking-tight text-primary">{effectiveKm.toFixed(2)}</p>
-                <p className="text-lg font-bold text-primary -mt-1">km</p>
-                <p className="text-sm text-neutral-600 mt-2">오늘도 훌륭한 러닝이었어요!</p>
-              </>
-            ) : (
-              <>
-                <p className="text-base font-semibold text-neutral-700">기록이 저장되었습니다</p>
-                <p className="text-sm text-neutral-500 mt-1">거리 정보 없이 저장되었어요.</p>
-              </>
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px 0',
+            animation: 'upload-fade-up 0.5s ease',
+            gap: '6px',
+          }}>
+            <div style={{
+              position: 'relative',
+              width: '230px',
+              height: '230px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              {/* Outer glow ring */}
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '50%',
+                border: '1.5px solid rgba(255,107,0,0.25)',
+                animation: 'upload-ring-pulse 2.2s ease-in-out infinite',
+              }} />
+              <div style={{
+                position: 'absolute',
+                inset: '14px',
+                borderRadius: '50%',
+                border: '1px solid rgba(255,107,0,0.15)',
+              }} />
+              {/* Inner circle */}
+              <div style={{
+                width: '170px',
+                height: '170px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle at 40% 40%, rgba(255,107,0,0.18) 0%, rgba(255,107,0,0.04) 100%)',
+                border: '1.5px solid rgba(255,107,0,0.35)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                animation: 'upload-glow-pulse 2.5s ease-in-out infinite',
+              }}>
+                {effectiveKm != null ? (
+                  <>
+                    <p style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontSize: '68px',
+                      fontWeight: 900,
+                      color: '#FF6B00',
+                      lineHeight: 1,
+                      letterSpacing: '-0.02em',
+                      animation: 'upload-km-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    }}>
+                      {effectiveKm.toFixed(2)}
+                    </p>
+                    <p style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontSize: '18px',
+                      fontWeight: 700,
+                      color: 'rgba(255,107,0,0.75)',
+                      letterSpacing: '0.12em',
+                      marginTop: '-4px',
+                    }}>KM</p>
+                  </>
+                ) : (
+                  <CheckCircle2 style={{ width: '48px', height: '48px', color: '#FF6B00' }} />
+                )}
+              </div>
+            </div>
+
+            <p style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: '22px',
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              color: '#E8E8F0',
+              marginTop: '10px',
+            }}>
+              인증 완료!
+            </p>
+            <p style={{ fontSize: '14px', color: '#5A5A72' }}>오늘도 훌륭한 러닝이었어요</p>
+          </div>
+        )}
+
+        {/* Analyzed form */}
+        {state === 'analyzed' && analyzed && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', animation: 'upload-fade-up 0.4s ease' }}>
+            {analyzed.visionConfidence !== 'failed' && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9px',
+                padding: '11px 15px',
+                backgroundColor: 'rgba(255,107,0,0.08)',
+                borderRadius: '14px',
+                border: '1px solid rgba(255,107,0,0.2)',
+              }}>
+                <Sparkles style={{ width: '14px', height: '14px', color: '#FF6B00', flexShrink: 0 }} />
+                <p style={{ fontSize: '12px', color: 'rgba(255,140,50,0.95)', fontWeight: 600, lineHeight: 1.4 }}>
+                  AI가 자동으로 정보를 인식했어요. 확인 후 인증하세요.
+                </p>
+              </div>
+            )}
+
+            <div style={{
+              backgroundColor: '#16161C',
+              borderRadius: '20px',
+              padding: '18px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              border: '1px solid #252530',
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: '#5A5A72',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}>
+                  <CalendarDays style={{ width: '11px', height: '11px' }} />
+                  러닝 날짜
+                </label>
+                <input
+                  type="date"
+                  value={dateInput}
+                  onChange={(e) => setDateInput(e.target.value)}
+                  style={{
+                    width: '100%',
+                    maxWidth: '100%',
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    border: '1.5px solid #2C2C38',
+                    borderRadius: '13px',
+                    padding: '13px 15px',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    background: '#0D0D10',
+                    color: '#E8E8F0',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    colorScheme: 'dark',
+                  }}
+                />
+              </div>
+
+              <div style={{ height: '1px', backgroundColor: '#252530' }} />
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: '#5A5A72',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}>
+                  <MapPin style={{ width: '11px', height: '11px' }} />
+                  거리 (km)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={kmInput}
+                  onChange={(e) => setKmInput(e.target.value)}
+                  placeholder="예: 5.23"
+                  style={{
+                    width: '100%',
+                    border: '1.5px solid #2C2C38',
+                    borderRadius: '13px',
+                    padding: '13px 15px',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    background: '#0D0D10',
+                    color: '#E8E8F0',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+            </div>
+
+            {analyzed.visionConfidence === 'failed' && (
+              <p style={{ fontSize: '12px', color: '#F59E0B', textAlign: 'center' }}>
+                사진에서 정보를 자동 인식하지 못했습니다. 직접 입력해주세요.
+              </p>
             )}
           </div>
         )}
 
         {error && (
-          <p className="text-danger text-sm text-center">{error}</p>
+          <p style={{ fontSize: '13px', color: '#EF4444', textAlign: 'center' }}>{error}</p>
+        )}
+      </div>
+
+      {/* Bottom CTA */}
+      <div style={{ padding: '8px 22px 32px', position: 'relative', zIndex: 1, flexShrink: 0 }}>
+        {(state === 'idle' || state === 'failed') && (
+          <button
+            onClick={state === 'failed' ? () => inputRef.current?.click() : handleAnalyze}
+            disabled={state === 'idle' && !file}
+            style={{
+              width: '100%',
+              padding: '18px',
+              background: (state === 'failed' || file)
+                ? 'linear-gradient(135deg, #FF6B00 0%, #FF8C1A 100%)'
+                : '#1E1E28',
+              border: 'none',
+              borderRadius: '18px',
+              fontSize: '17px',
+              fontWeight: 800,
+              fontFamily: "'Barlow Condensed', sans-serif",
+              letterSpacing: '0.07em',
+              color: (state === 'failed' || file) ? '#FFFFFF' : '#3A3A4A',
+              cursor: (state === 'failed' || file) ? 'pointer' : 'not-allowed',
+              boxShadow: (state === 'failed' || file) ? '0 10px 28px rgba(255,107,0,0.38)' : 'none',
+              transition: 'all 0.25s ease',
+            }}
+          >
+            {state === 'failed' ? '다시 시도' : file ? 'AI로 분석하기' : '사진을 선택하세요'}
+          </button>
         )}
 
-        {/* Actions */}
-        <div className="w-full space-y-3">
-          {state === 'idle' && (
-            <button
-              onClick={handleAnalyze}
-              disabled={!file}
-              className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold disabled:opacity-50 hover:bg-primary-hover transition-colors shadow-md"
-            >
-              분석하기
-            </button>
-          )}
+        {isLoading && (
+          <button disabled style={{
+            width: '100%',
+            padding: '18px',
+            background: 'linear-gradient(135deg, rgba(255,107,0,0.55) 0%, rgba(255,140,26,0.55) 100%)',
+            border: 'none',
+            borderRadius: '18px',
+            fontSize: '17px',
+            fontWeight: 800,
+            fontFamily: "'Barlow Condensed', sans-serif",
+            letterSpacing: '0.07em',
+            color: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+          }}>
+            <span style={{
+              width: '17px',
+              height: '17px',
+              border: '2px solid rgba(255,255,255,0.3)',
+              borderTopColor: '#FFFFFF',
+              borderRadius: '50%',
+              animation: 'spin 0.9s linear infinite',
+              flexShrink: 0,
+            }} />
+            {state === 'analyzing' ? '분석 중...' : '저장 중...'}
+          </button>
+        )}
 
-          {state === 'analyzing' && (
-            <button disabled className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold opacity-70">
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                분석 중...
-              </span>
-            </button>
-          )}
+        {state === 'analyzed' && (
+          <button
+            onClick={handleSave}
+            style={{
+              width: '100%',
+              padding: '18px',
+              background: 'linear-gradient(135deg, #FF6B00 0%, #FF8C1A 100%)',
+              border: 'none',
+              borderRadius: '18px',
+              fontSize: '17px',
+              fontWeight: 800,
+              fontFamily: "'Barlow Condensed', sans-serif",
+              letterSpacing: '0.07em',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+              boxShadow: '0 10px 28px rgba(255,107,0,0.38)',
+            }}
+          >
+            인증하기
+          </button>
+        )}
 
-          {state === 'analyzed' && (
-            <button
-              onClick={handleSave}
-              className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-hover transition-colors shadow-md"
-            >
-              인증하기
-            </button>
-          )}
-
-          {state === 'saving' && (
-            <button disabled className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold opacity-70">
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                저장 중...
-              </span>
-            </button>
-          )}
-
-          {state === 'failed' && (
-            <button
-              onClick={() => inputRef.current?.click()}
-              className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-hover transition-colors shadow-md"
-            >
-              다시 시도
-            </button>
-          )}
-        </div>
+        {state === 'success' && (
+          <a
+            href="/dashboard"
+            style={{
+              display: 'block',
+              width: '100%',
+              padding: '18px',
+              background: 'linear-gradient(135deg, #FF6B00 0%, #FF8C1A 100%)',
+              border: 'none',
+              borderRadius: '18px',
+              fontSize: '17px',
+              fontWeight: 800,
+              fontFamily: "'Barlow Condensed', sans-serif",
+              letterSpacing: '0.07em',
+              color: '#FFFFFF',
+              textAlign: 'center',
+              textDecoration: 'none',
+              boxShadow: '0 10px 28px rgba(255,107,0,0.38)',
+              boxSizing: 'border-box',
+            }}
+          >
+            인증현황 보기
+          </a>
+        )}
       </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
     </div>
   );
 }

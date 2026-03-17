@@ -15,8 +15,8 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', backgroundColor: '#0D0D10' }}>
+      <div style={{ width: '28px', height: '28px', border: '2px solid rgba(255,107,0,0.2)', borderTopColor: '#FF6B00', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
     </div>
   );
 }

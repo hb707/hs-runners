@@ -47,33 +47,65 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-6 bg-white">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center">
-          <div className="text-4xl mb-3">🎫</div>
-          <h1 className="text-xl font-bold">팀 합류하기</h1>
-          <p className="mt-1 text-gray-500 text-sm">팀 어드민에게 받은 초대코드를 입력해주세요</p>
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      minHeight: '100dvh', backgroundColor: '#0D0D10', padding: '0 28px',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{
+        position: 'absolute', top: '-80px', right: '-60px', width: '240px', height: '240px',
+        borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,0,0.1) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+
+      <div style={{ width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', gap: '36px', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '64px', height: '64px', borderRadius: '20px',
+            background: 'rgba(255,107,0,0.1)', border: '1.5px solid rgba(255,107,0,0.28)',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: '18px', fontSize: '28px',
+          }}>🎫</div>
+          <h1 style={{
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: '34px', fontWeight: 900,
+            letterSpacing: '-0.01em', color: '#E8E8F0', marginBottom: '8px',
+          }}>팀 합류하기</h1>
+          <p style={{ fontSize: '14px', color: '#5A5A72', lineHeight: 1.5 }}>
+            팀 어드민에게 받은 초대코드를<br />입력해주세요
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <input
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             placeholder="XXXX-XXXX"
             maxLength={9}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-center text-lg font-mono tracking-widest focus:outline-none focus:border-primary"
+            style={{
+              width: '100%', padding: '18px', border: '1.5px solid #252530', borderRadius: '16px',
+              textAlign: 'center', fontSize: '22px', fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 700, letterSpacing: '0.18em', background: '#16161C', color: '#E8E8F0',
+              outline: 'none', boxSizing: 'border-box',
+            }}
           />
-
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
-
+          {error && <p style={{ color: '#EF4444', fontSize: '13px', textAlign: 'center' }}>{error}</p>}
           <button
             type="submit"
             disabled={loading || !code.trim()}
-            className="w-full py-3 bg-primary text-white rounded-xl font-medium disabled:opacity-50 hover:bg-primary-hover transition-colors"
+            style={{
+              width: '100%', padding: '17px',
+              background: (loading || !code.trim()) ? '#1E1E28' : 'linear-gradient(135deg, #FF6B00, #FF8C1A)',
+              border: 'none', borderRadius: '16px',
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '17px',
+              fontWeight: 800, letterSpacing: '0.06em',
+              color: (loading || !code.trim()) ? '#3A3A4A' : '#FFFFFF',
+              cursor: (loading || !code.trim()) ? 'not-allowed' : 'pointer',
+              boxShadow: (loading || !code.trim()) ? 'none' : '0 10px 28px rgba(255,107,0,0.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+            }}
           >
+            {loading && <span style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />}
             {loading ? '확인 중...' : '팀 합류하기'}
           </button>
         </form>

@@ -42,45 +42,70 @@ export default function TeamHeader() {
   if (!team) return null;
 
   return (
-    <div className="px-4 py-3 border-b border-neutral-100 bg-white flex items-center justify-between">
-      <div className="flex items-center gap-2 min-w-0">
-        <Activity className="w-5 h-5 text-primary flex-shrink-0" strokeWidth={2} />
-        <span className="font-semibold text-base text-neutral-800 truncate">{team.name}</span>
+    <div style={{
+      padding: '12px 18px', borderBottom: '1px solid #252530', backgroundColor: '#0D0D10',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+        <Activity style={{ width: '18px', height: '18px', color: '#FF6B00', flexShrink: 0 }} strokeWidth={2.5} />
+        <span style={{
+          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+          fontSize: '17px', color: '#E8E8F0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>{team.name}</span>
       </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <span className="text-xs text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded-full font-medium">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+        <span style={{
+          fontSize: '11px', color: '#FF6B00', background: 'rgba(255,107,0,0.1)',
+          border: '1px solid rgba(255,107,0,0.2)', padding: '3px 10px', borderRadius: '20px', fontWeight: 600,
+        }}>
           {memberCount}명
         </span>
-        <div className="relative" ref={menuRef}>
+        <div style={{ position: 'relative' }} ref={menuRef}>
           <button
             type="button"
             onClick={() => setShowMenu((v) => !v)}
-            className="p-0.5 rounded-full overflow-hidden hover:ring-2 hover:ring-primary transition-all"
+            style={{
+              padding: '2px', borderRadius: '50%', overflow: 'hidden',
+              background: 'none', border: 'none', cursor: 'pointer',
+            }}
             aria-label="프로필 메뉴"
           >
             {user?.profileImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={user.profileImageUrl} alt="프로필" className="w-7 h-7 rounded-full object-cover" />
+              <img src={user.profileImageUrl} alt="프로필" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} />
             ) : (
-              <UserCircle className="w-7 h-7 text-neutral-500" strokeWidth={2} />
+              <UserCircle style={{ width: '28px', height: '28px', color: '#5A5A72' }} strokeWidth={2} />
             )}
           </button>
           {showMenu && (
-            <div className="absolute right-0 top-full mt-1 py-1 bg-white rounded-lg shadow-card border border-neutral-100 min-w-[130px] z-50">
+            <div style={{
+              position: 'absolute', right: 0, top: 'calc(100% + 6px)',
+              backgroundColor: '#1A1A22', border: '1px solid #252530', borderRadius: '12px',
+              minWidth: '130px', zIndex: 50, padding: '4px 0',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            }}>
               <button
                 type="button"
                 onClick={() => { setShowMenu(false); router.push('/profile'); }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '10px 14px', fontSize: '13px', color: '#C8C8D8',
+                  background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+                }}
               >
-                <UserIcon className="w-4 h-4" strokeWidth={2} />
+                <UserIcon style={{ width: '14px', height: '14px' }} strokeWidth={2} />
                 프로필
               </button>
               <button
                 type="button"
                 onClick={() => { setShowMenu(false); logout(); }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '10px 14px', fontSize: '13px', color: '#C8C8D8',
+                  background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+                }}
               >
-                <LogOut className="w-4 h-4" strokeWidth={2} />
+                <LogOut style={{ width: '14px', height: '14px' }} strokeWidth={2} />
                 로그아웃
               </button>
             </div>

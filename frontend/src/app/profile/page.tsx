@@ -67,64 +67,84 @@ export default function ProfilePage() {
   const displayImage = previewUrl ?? user?.profileImageUrl;
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <div className="flex items-center justify-between px-4 py-4 border-b">
-        <button onClick={() => router.back()} className="text-gray-500">←</button>
-        <h1 className="text-base font-bold">프로필</h1>
-        <div />
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', backgroundColor: '#0D0D10' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid #1A1A22' }}>
+        <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5A5A72', fontSize: '20px', lineHeight: 1 }}>←</button>
+        <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '18px', fontWeight: 700, color: '#E8E8F0' }}>프로필</h1>
+        <div style={{ width: '20px' }} />
       </div>
 
-      <div className="flex flex-col items-center px-6 py-8 gap-6">
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '36px 24px', gap: '28px' }}>
         {/* 프로필 이미지 */}
-        <div className="relative">
-          <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden',
+            backgroundColor: '#16161C', border: '2px solid #252530',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
             {displayImage ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={displayImage} alt="프로필" className="w-full h-full object-cover" />
+              <img src={displayImage} alt="프로필" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <UserCircle className="w-16 h-16 text-gray-300" />
+              <UserCircle style={{ width: '56px', height: '56px', color: '#3A3A4A' }} />
             )}
           </div>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploadingAvatar}
-            className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-lg leading-none shadow disabled:opacity-50"
+            style={{
+              position: 'absolute', bottom: 0, right: 0,
+              width: '30px', height: '30px',
+              background: uploadingAvatar ? 'rgba(255,107,0,0.6)' : 'linear-gradient(135deg, #FF6B00, #FF8C1A)',
+              border: 'none', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: uploadingAvatar ? 'not-allowed' : 'pointer',
+              boxShadow: '0 2px 8px rgba(255,107,0,0.4)',
+            }}
           >
             {uploadingAvatar ? (
-              <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : '+'}
+              <span style={{ width: '12px', height: '12px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
+            ) : <span style={{ color: '#fff', fontSize: '16px', lineHeight: 1, fontWeight: 700 }}>+</span>}
           </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleAvatarChange}
-          />
+          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
         </div>
 
         {/* 닉네임 폼 */}
-        <form onSubmit={handleSave} className="w-full space-y-4">
+        <form onSubmit={handleSave} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label className="text-xs text-gray-500 mb-1.5 block">닉네임</label>
+            <label style={{ fontSize: '10px', color: '#5A5A72', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, display: 'block', marginBottom: '8px' }}>닉네임</label>
             <input
               type="text"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               maxLength={20}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary"
+              style={{
+                width: '100%', padding: '13px 15px', border: '1.5px solid #252530',
+                borderRadius: '14px', fontSize: '15px', fontWeight: 500,
+                background: '#16161C', color: '#E8E8F0', outline: 'none', boxSizing: 'border-box',
+              }}
             />
           </div>
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          {success && <p className="text-xs text-green-500">{success}</p>}
+          {error && <p style={{ fontSize: '12px', color: '#EF4444' }}>{error}</p>}
+          {success && <p style={{ fontSize: '12px', color: '#34D399' }}>{success}</p>}
 
           <button
             type="submit"
             disabled={saving || !nickname.trim()}
-            className="w-full py-3 bg-primary text-white rounded-xl text-sm font-medium disabled:opacity-50"
+            style={{
+              width: '100%', padding: '17px', border: 'none', borderRadius: '16px',
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '17px',
+              fontWeight: 800, letterSpacing: '0.06em',
+              background: (saving || !nickname.trim()) ? '#1E1E28' : 'linear-gradient(135deg, #FF6B00, #FF8C1A)',
+              color: (saving || !nickname.trim()) ? '#3A3A4A' : '#FFFFFF',
+              cursor: (saving || !nickname.trim()) ? 'not-allowed' : 'pointer',
+              boxShadow: (saving || !nickname.trim()) ? 'none' : '0 10px 28px rgba(255,107,0,0.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            }}
           >
+            {saving && <span style={{ width: '15px', height: '15px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />}
             {saving ? '저장 중...' : '저장'}
           </button>
         </form>

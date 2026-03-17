@@ -20,8 +20,8 @@ export default function RecordDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', backgroundColor: '#0D0D10' }}>
+        <div style={{ width: '24px', height: '24px', border: '2px solid rgba(255,107,0,0.2)', borderTopColor: '#FF6B00', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
       </div>
     );
   }
@@ -34,60 +34,63 @@ export default function RecordDetailPage() {
     year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
   });
 
+  const confidenceColor = record.visionConfidence === 'high' ? '#34D399'
+    : record.visionConfidence === 'medium' || record.visionConfidence === 'low' ? '#FBBF24'
+    : '#EF4444';
+  const confidenceLabel = record.visionConfidence === 'high' ? '높음'
+    : record.visionConfidence === 'medium' ? '보통'
+    : record.visionConfidence === 'low' ? '낮음' : '실패';
+
   return (
-    <div className="flex flex-col min-h-screen bg-surface">
-      <div className="flex items-center px-4 py-4 border-b bg-white">
-        <button onClick={() => router.back()} className="mr-3 text-neutral-500 hover:text-neutral-700">←</button>
-        <h1 className="text-base font-bold">인증 기록</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', backgroundColor: '#0D0D10' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid #1A1A22' }}>
+        <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '10px', color: '#5A5A72', fontSize: '20px', lineHeight: 1 }}>←</button>
+        <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '18px', fontWeight: 700, color: '#E8E8F0' }}>인증 기록</h1>
       </div>
 
-      <div className="relative w-full aspect-square bg-neutral-100">
-        <Image
-          src={imageUrl}
-          alt="러닝 인증사진"
-          fill
-          className="object-cover"
-          unoptimized
-        />
+      {/* Photo */}
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', backgroundColor: '#16161C' }}>
+        <Image src={imageUrl} alt="러닝 인증사진" fill style={{ objectFit: 'cover' }} unoptimized />
       </div>
 
-      {/* 정보 카드 오버레이 */}
-      <div className="-mt-6 mx-4 rounded-t-2xl bg-white shadow-card overflow-hidden relative z-10">
-        <div className="p-5 space-y-4">
-          <div>
-            <p className="text-sm text-neutral-400">{recordDate}</p>
-            {distance !== null && distance !== undefined ? (
-              <p className="text-4xl font-bold text-primary mt-1">{distance.toFixed(2)} km</p>
-            ) : (
-              <p className="text-base text-neutral-400 mt-1">거리 정보 없음</p>
-            )}
+      {/* Info card overlapping photo */}
+      <div style={{
+        marginTop: '-20px', marginLeft: '16px', marginRight: '16px',
+        borderRadius: '20px', backgroundColor: '#16161C',
+        border: '1px solid #252530', position: 'relative', zIndex: 10,
+        padding: '20px',
+        boxShadow: '0 -8px 32px rgba(0,0,0,0.5)',
+      }}>
+        <p style={{ fontSize: '12px', color: '#5A5A72', marginBottom: '4px' }}>{recordDate}</p>
+        {distance !== null && distance !== undefined ? (
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '44px', fontWeight: 900, color: '#FF6B00', lineHeight: 1, letterSpacing: '-0.02em' }}>
+            {distance.toFixed(2)} <span style={{ fontSize: '22px', letterSpacing: '0.02em' }}>km</span>
+          </p>
+        ) : (
+          <p style={{ fontSize: '15px', color: '#3A3A4A', marginTop: '4px' }}>거리 정보 없음</p>
+        )}
+
+        <div style={{ marginTop: '16px', backgroundColor: '#0D0D10', borderRadius: '14px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '12px', color: '#5A5A72' }}>분석 정확도</span>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: confidenceColor }}>{confidenceLabel}</span>
           </div>
-
-          <div className="bg-surface rounded-xl p-4 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-neutral-500">분석 정확도</span>
-            <span className={`font-semibold ${
-              record.visionConfidence === 'high' ? 'text-success' :
-              record.visionConfidence === 'medium' ? 'text-warning' :
-              record.visionConfidence === 'low' ? 'text-warning' :
-              'text-danger'
-            }`}>
-              {record.visionConfidence === 'high' ? '높음' :
-               record.visionConfidence === 'medium' ? '보통' :
-               record.visionConfidence === 'low' ? '낮음' : '실패'}
+          <div style={{ height: '1px', backgroundColor: '#1A1A22' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '12px', color: '#5A5A72' }}>인식된 텍스트</span>
+            <span style={{ fontSize: '11px', color: '#C8C8D8', fontFamily: 'monospace' }}>
+              {record.visionConfidence === 'failed' ? '-' : (record.visionRaw ?? '-')}
             </span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-neutral-500">인식된 텍스트</span>
-            <span className="text-neutral-700 font-mono text-xs">{record.visionConfidence === 'failed' ? '-' : (record.visionRaw ?? '-')}</span>
-          </div>
           {record.manualDistanceKm !== null && (
-            <div className="flex justify-between text-sm">
-              <span className="text-neutral-500">수동 입력</span>
-              <span className="text-primary font-semibold">{record.manualDistanceKm} km</span>
-            </div>
+            <>
+              <div style={{ height: '1px', backgroundColor: '#1A1A22' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '12px', color: '#5A5A72' }}>수동 입력</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#FF6B00' }}>{record.manualDistanceKm} km</span>
+              </div>
+            </>
           )}
-        </div>
         </div>
       </div>
     </div>

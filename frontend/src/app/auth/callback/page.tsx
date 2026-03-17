@@ -51,10 +51,10 @@ function CallbackContent() {
   }, [router, searchParams, setAuth]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="mt-4 text-gray-500 text-sm">로그인 중...</p>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', backgroundColor: '#0D0D10' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: '32px', height: '32px', border: '2px solid rgba(255,107,0,0.2)', borderTopColor: '#FF6B00', borderRadius: '50%', animation: 'spin 0.9s linear infinite', margin: '0 auto' }} />
+        <p style={{ marginTop: '14px', color: '#5A5A72', fontSize: '13px' }}>로그인 중...</p>
       </div>
     </div>
   );
@@ -63,8 +63,8 @@ function CallbackContent() {
 export default function CallbackPage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', backgroundColor: '#0D0D10' }}>
+        <div style={{ width: '32px', height: '32px', border: '2px solid rgba(255,107,0,0.2)', borderTopColor: '#FF6B00', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
       </div>
     }
     >

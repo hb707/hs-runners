@@ -6,8 +6,8 @@ import api from '@/lib/api';
 import type { RunRecord, User } from '@/types';
 
 const MEMBER_COLORS = [
-  'bg-indigo-400', 'bg-pink-400', 'bg-green-400', 'bg-yellow-400',
-  'bg-purple-400', 'bg-red-400', 'bg-blue-400', 'bg-orange-400',
+  '#818CF8', '#F472B6', '#34D399', '#FBBF24',
+  '#A78BFA', '#F87171', '#60A5FA', '#FB923C',
 ];
 
 function getInitials(nickname: string): string {
@@ -53,7 +53,7 @@ export default function CalendarPage() {
       .finally(() => setLoading(false));
   }, [monthStr]);
 
-  const memberColorMap = new Map(members.map((m, i) => [m.id, MEMBER_COLORS[i % MEMBER_COLORS.length]]));
+  const memberColorMap = new Map<string, string>(members.map((m, i) => [m.id, MEMBER_COLORS[i % MEMBER_COLORS.length]]));
 
   // Group records by day
   const recordsByDay = new Map<number, RunRecord[]>();
@@ -79,63 +79,71 @@ export default function CalendarPage() {
     ? `${month}월 ${selectedDay}일`
     : '날짜 선택';
 
+  const card: React.CSSProperties = {
+    backgroundColor: '#16161C', borderRadius: '20px', border: '1px solid #252530', padding: '16px',
+  };
+
   return (
-    <div className="flex flex-col h-full bg-surface px-4 py-4 gap-3">
-      <div className="bg-white rounded-3xl shadow-card-sm border border-neutral-100 p-4">
-        <div className="flex items-center justify-between">
-          <button onClick={prevMonth} className="p-2 text-neutral-500 hover:text-neutral-700 rounded-xl hover:bg-neutral-100 transition-colors">
-            <ChevronLeft size={22} />
+    <div style={{ display: 'flex', flexDirection: 'column', padding: '14px 16px', gap: '12px', backgroundColor: '#0D0D10', minHeight: '100%' }}>
+      {/* Calendar card */}
+      <div style={card}>
+        {/* Month navigation */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px', color: '#5A5A72' }}>
+            <ChevronLeft size={20} />
           </button>
-          <div className="flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-primary" />
-            <h1 className="text-xl font-bold text-neutral-900">{year}년 {month}월</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CalendarDays style={{ width: '16px', height: '16px', color: '#FF6B00' }} />
+            <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '20px', fontWeight: 800, color: '#E8E8F0', letterSpacing: '-0.01em' }}>
+              {year}년 {month}월
+            </h1>
           </div>
-          <button onClick={nextMonth} className="p-2 text-neutral-500 hover:text-neutral-700 rounded-xl hover:bg-neutral-100 transition-colors">
-            <ChevronRight size={22} />
+          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px', color: '#5A5A72' }}>
+            <ChevronRight size={20} />
           </button>
         </div>
 
-        <div className="mt-3 flex gap-2">
-          <span className="px-3 py-1 rounded-full bg-neutral-100 text-neutral-600 text-xs font-medium">전체</span>
-          <span className="px-3 py-1 rounded-full bg-primary text-white text-xs font-semibold">인증일</span>
-        </div>
-
-        <div className="grid grid-cols-7 text-center text-xs text-neutral-400 py-3">
+        {/* Day headers */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', marginBottom: '8px' }}>
           {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
-            <div key={d}>{d}</div>
+            <div key={d} style={{ fontSize: '11px', color: '#3A3A4A', padding: '4px 0' }}>{d}</div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-y-2">
+        {/* Calendar grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px 0' }}>
           {calendarCells.map((day, idx) => {
-            if (!day) return <div key={`blank-${idx}`} className="h-10" />;
+            if (!day) return <div key={`blank-${idx}`} style={{ height: '46px' }} />;
 
             const dayRecords = recordsByDay.get(day) ?? [];
             const uniqueUsers = [...new Set(dayRecords.map((r) => r.userId))];
             const isToday = day === today.getDate() && month === today.getMonth() + 1 && year === today.getFullYear();
             const isSelected = selectedDay === day;
+            const hasRecords = dayRecords.length > 0;
 
             return (
               <button
                 key={day}
                 type="button"
-                className="h-12 flex flex-col items-center justify-center gap-1 rounded-2xl hover:bg-neutral-100 transition-colors"
                 onClick={() => setSelectedDay(day)}
+                style={{
+                  height: '46px', display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  justifyContent: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer',
+                  borderRadius: '10px', transition: 'background 0.15s',
+                }}
               >
-                <span
-                  className={`w-8 h-8 rounded-full inline-flex items-center justify-center text-sm font-semibold ${
-                    isSelected
-                      ? 'bg-primary text-white shadow-md'
-                      : isToday
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-neutral-800'
-                  }`}
-                >
+                <span style={{
+                  width: '30px', height: '30px', borderRadius: '50%',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '13px', fontWeight: isSelected || isToday ? 700 : 400,
+                  backgroundColor: isSelected ? '#FF6B00' : isToday ? 'rgba(255,107,0,0.15)' : 'transparent',
+                  color: isSelected ? '#FFFFFF' : isToday ? '#FF6B00' : hasRecords ? '#E8E8F0' : '#5A5A72',
+                }}>
                   {day}
                 </span>
-                <span className="flex items-center gap-0.5">
+                <span style={{ display: 'flex', gap: '2px', height: '5px', alignItems: 'center' }}>
                   {uniqueUsers.slice(0, 3).map((uid) => (
-                    <span key={uid} className={`w-1.5 h-1.5 rounded-full ${memberColorMap.get(uid) ?? 'bg-neutral-300'}`} />
+                    <span key={uid} style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: memberColorMap.get(uid) ?? '#3A3A4A' }} />
                   ))}
                 </span>
               </button>
@@ -144,19 +152,20 @@ export default function CalendarPage() {
         </div>
       </div>
 
+      {/* Selected day records */}
       {loading ? (
-        <div className="flex-1 flex items-center justify-center bg-white rounded-2xl">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px' }}>
+          <div style={{ width: '24px', height: '24px', border: '2px solid rgba(255,107,0,0.2)', borderTopColor: '#FF6B00', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
         </div>
       ) : (
-        <div className="bg-white rounded-3xl shadow-card-sm border border-neutral-100 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-neutral-900">{selectedDateLabel} 인증 기록</h2>
+        <div style={card}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <h2 style={{ fontSize: '13px', fontWeight: 700, color: '#E8E8F0' }}>{selectedDateLabel} 인증 기록</h2>
             {selectedDay && selectedRecords.length > 0 && (
               <button
                 type="button"
                 onClick={() => router.push(`/dashboard/day/${monthStr}-${String(selectedDay).padStart(2, '0')}`)}
-                className="text-xs text-primary font-semibold"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#FF6B00', fontWeight: 700 }}
               >
                 전체 보기
               </button>
@@ -164,30 +173,43 @@ export default function CalendarPage() {
           </div>
 
           {selectedRecords.length === 0 ? (
-            <p className="text-sm text-neutral-400 py-6 text-center">이 날짜에는 인증 기록이 없습니다</p>
+            <p style={{ fontSize: '13px', color: '#3A3A4A', textAlign: 'center', padding: '20px 0' }}>이 날짜에는 인증 기록이 없습니다</p>
           ) : (
-            <div className="space-y-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {selectedRecords.slice(0, 3).map((record) => {
                 const member = members.find((m) => m.id === record.userId);
                 const distance = record.manualDistanceKm ?? record.distanceKm;
-                const color = memberColorMap.get(record.userId) ?? 'bg-neutral-300';
+                const color = memberColorMap.get(record.userId) ?? '#5A5A72';
                 return (
                   <button
                     key={record.id}
                     type="button"
                     onClick={() => router.push(`/dashboard/records/${record.id}`)}
-                    className="w-full text-left rounded-2xl border border-neutral-100 bg-surface px-3 py-2.5 flex items-center gap-3 hover:bg-neutral-100 transition-colors"
+                    style={{
+                      width: '100%', textAlign: 'left', borderRadius: '14px',
+                      border: '1px solid #252530', backgroundColor: '#0D0D10',
+                      padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px',
+                      cursor: 'pointer', background: 'none',
+                    }}
                   >
                     {member?.profileImageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={member.profileImageUrl} alt={member.nickname} className="w-8 h-8 rounded-full object-cover" />
+                      <img src={member.profileImageUrl} alt={member.nickname} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                     ) : (
-                      <span className={`w-8 h-8 rounded-full text-white text-xs font-semibold inline-flex items-center justify-center ${color}`}>
+                      <span style={{
+                        width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+                        backgroundColor: color, color: '#0D0D10', fontSize: '11px',
+                        fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
                         {getInitials(member?.nickname ?? '?')}
                       </span>
                     )}
-                    <span className="flex-1 text-sm text-neutral-800 font-medium">{member?.nickname ?? '알 수 없음'}</span>
-                    <span className="text-sm font-bold text-primary">{distance != null ? `${distance.toFixed(2)}km` : '-'}</span>
+                    <span style={{ flex: 1, fontSize: '13px', color: '#C8C8D8', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {member?.nickname ?? '알 수 없음'}
+                    </span>
+                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#FF6B00', fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '-0.01em' }}>
+                      {distance != null ? `${distance.toFixed(2)}km` : '-'}
+                    </span>
                   </button>
                 );
               })}
@@ -196,21 +218,27 @@ export default function CalendarPage() {
         </div>
       )}
 
+      {/* Team members */}
       {members.length > 0 && (
-        <div className="bg-white rounded-3xl shadow-card-sm border border-neutral-100 p-4 mb-1">
-          <p className="text-xs text-neutral-400 mb-2">팀원</p>
-          <div className="flex flex-wrap gap-2.5">
+        <div style={{ ...card, marginBottom: '4px' }}>
+          <p style={{ fontSize: '10px', color: '#3A3A4A', marginBottom: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>팀원</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {members.map((m, i) => (
-              <div key={m.id} className="flex items-center gap-2">
+              <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 {m.profileImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={m.profileImageUrl} alt={m.nickname} className="w-7 h-7 rounded-full object-cover ring-2 ring-white shadow-sm" />
+                  <img src={m.profileImageUrl} alt={m.nickname} style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${MEMBER_COLORS[i % MEMBER_COLORS.length]}` }} />
                 ) : (
-                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white ${MEMBER_COLORS[i % MEMBER_COLORS.length]}`}>
+                  <span style={{
+                    width: '26px', height: '26px', borderRadius: '50%',
+                    backgroundColor: MEMBER_COLORS[i % MEMBER_COLORS.length],
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '10px', fontWeight: 700, color: '#0D0D10', flexShrink: 0,
+                  }}>
                     {getInitials(m.nickname)}
                   </span>
                 )}
-                <span className="text-xs text-neutral-600 max-w-[80px] truncate">{m.nickname}</span>
+                <span style={{ fontSize: '12px', color: '#5A5A72', maxWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.nickname}</span>
               </div>
             ))}
           </div>
