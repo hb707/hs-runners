@@ -28,6 +28,15 @@ export default function RecordDetailPage() {
   if (!record) return null;
 
   const distance = record.manualDistanceKm ?? record.distanceKm;
+  const duration = record.manualDurationSeconds ?? record.durationSeconds;
+
+  function formatDuration(sec: number): string {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return `${h}시간 ${String(m).padStart(2, '0')}분`;
+    return `${m}분 ${String(s).padStart(2, '0')}초`;
+  }
   const imageUrl = record.imageUrl;
   const recordDate = new Date(record.recordedAt).toLocaleDateString('ko-KR', {
     year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
@@ -60,13 +69,20 @@ export default function RecordDetailPage() {
         boxShadow: '0 -8px 32px rgba(0,0,0,0.5)',
       }}>
         <p style={{ fontSize: '12px', color: '#5A5A72', marginBottom: '4px' }}>{recordDate}</p>
-        {distance !== null && distance !== undefined ? (
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '44px', fontWeight: 900, color: '#FF6B00', lineHeight: 1, letterSpacing: '-0.02em' }}>
-            {distance.toFixed(2)} <span style={{ fontSize: '22px', letterSpacing: '0.02em' }}>km</span>
-          </p>
-        ) : (
-          <p style={{ fontSize: '15px', color: '#3A3A4A', marginTop: '4px' }}>거리 정보 없음</p>
-        )}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          {distance !== null && distance !== undefined ? (
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '44px', fontWeight: 900, color: '#FF6B00', lineHeight: 1, letterSpacing: '-0.02em' }}>
+              {distance.toFixed(2)} <span style={{ fontSize: '22px', letterSpacing: '0.02em' }}>km</span>
+            </p>
+          ) : (
+            <p style={{ fontSize: '15px', color: '#3A3A4A', marginTop: '4px' }}>거리 정보 없음</p>
+          )}
+          {duration !== null && duration !== undefined && duration > 0 && (
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '22px', fontWeight: 700, color: '#C8C8D8', lineHeight: 1, letterSpacing: '-0.01em', paddingBottom: '4px' }}>
+              {formatDuration(duration)}
+            </p>
+          )}
+        </div>
 
         <div style={{ marginTop: '16px', backgroundColor: '#0D0D10', borderRadius: '14px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

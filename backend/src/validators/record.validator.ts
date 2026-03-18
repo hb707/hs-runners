@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 export const updateDistanceSchema = z.object({
-  distanceKm: z.number().min(0.1).max(999),
+  distanceKm: z.number().min(0).max(999).nullable().optional(),
+  durationSeconds: z.number().int().min(0).max(86400).nullable().optional(),
 });
 
 export const createRecordSchema = z.object({
@@ -10,6 +11,7 @@ export const createRecordSchema = z.object({
   recordedAt: z.string(),
   visionRaw: z.string().nullable().optional(),
   visionConfidence: z.enum(['high', 'medium', 'low', 'failed']).optional().default('failed'),
+  durationSeconds: z.number().int().min(0).max(86400).nullable().optional().default(null),
 });
 
 export const recordQuerySchema = z.object({

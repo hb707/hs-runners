@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Camera, CheckCircle2, Sparkles, MapPin, CalendarDays } from 'lucide-react';
+import { Camera, CheckCircle2, Sparkles, MapPin, CalendarDays, Timer } from 'lucide-react';
 import api from '@/lib/api';
 import type { RunRecord } from '@/types';
 
@@ -14,6 +14,23 @@ interface AnalyzeResult {
   recordedDate: string | null;
   visionRaw: string | null;
   visionConfidence: string;
+  durationSeconds: number | null;
+}
+
+function secondsToTimeStr(sec: number): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function timeStrToSeconds(str: string): number | null {
+  const parts = str.trim().split(':').map(Number);
+  if (parts.some(isNaN)) return null;
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  return null;
 }
 
 const STEPS = [
@@ -38,6 +55,7 @@ export default function UploadNewPage() {
   const [analyzed, setAnalyzed] = useState<AnalyzeResult | null>(null);
   const [kmInput, setKmInput] = useState('');
   const [dateInput, setDateInput] = useState('');
+  const [durationInput, setDurationInput] = useState('');
   const [result, setResult] = useState<RunRecord | null>(null);
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -76,6 +94,7 @@ export default function UploadNewPage() {
       setAnalyzed(data);
       setKmInput(data.distanceKm != null ? String(data.distanceKm) : '');
       setDateInput(data.recordedDate ?? new Date().toISOString().slice(0, 10));
+      setDurationInput(data.durationSeconds != null ? secondsToTimeStr(data.durationSeconds) : '');
       setState('analyzed');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: { message?: string } } } })
@@ -93,6 +112,8 @@ export default function UploadNewPage() {
     const distanceKm = kmInput.trim() ? parseFloat(kmInput) : null;
     const recordedAt = dateInput ? new Date(dateInput).toISOString() : new Date().toISOString();
 
+    const durationSeconds = durationInput.trim() ? timeStrToSeconds(durationInput) : null;
+
     try {
       const res = await api.post<{ success: boolean; data: RunRecord }>('/records', {
         imageUrl: analyzed.imageUrl,
@@ -100,6 +121,7 @@ export default function UploadNewPage() {
         recordedAt,
         visionRaw: analyzed.visionRaw,
         visionConfidence: analyzed.visionConfidence,
+        durationSeconds,
       });
       setResult(res.data.data);
       setState('success');
@@ -507,6 +529,43 @@ export default function UploadNewPage() {
                   value={kmInput}
                   onChange={(e) => setKmInput(e.target.value)}
                   placeholder="예: 5.23"
+                  style={{
+                    width: '100%',
+                    border: '1.5px solid #2C2C38',
+                    borderRadius: '13px',
+                    padding: '13px 15px',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    background: '#0D0D10',
+                    color: '#E8E8F0',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div style={{ height: '1px', backgroundColor: '#252530' }} />
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: '#5A5A72',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}>
+                  <Timer style={{ width: '11px', height: '11px' }} />
+                  운동 시간
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={durationInput}
+                  onChange={(e) => setDurationInput(e.target.value)}
+                  placeholder="예: 32:15 (분:초)"
                   style={{
                     width: '100%',
                     border: '1.5px solid #2C2C38',

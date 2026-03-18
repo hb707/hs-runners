@@ -29,6 +29,10 @@ function formatWeekLabel(weekStr: string): string {
   return `${fmt(start)}~${fmt(end)}`;
 }
 
+function formatDuration(seconds: number): string {
+  return (seconds / 3600).toFixed(1);
+}
+
 function addWeeks(weekStr: string, delta: number): string {
   const { start } = getWeekBounds(weekStr);
   const newDate = new Date(start.getTime() + delta * 7 * 86400000);
@@ -134,21 +138,28 @@ export default function StatsPage() {
                   (acc, s) => ({
                     totalRecords: acc.totalRecords + s.totalRecords,
                     totalKm: acc.totalKm + s.totalKm,
+                    totalDurationSeconds: acc.totalDurationSeconds + s.totalDurationSeconds,
                     totalFineAmount: acc.totalFineAmount + s.totalFineAmount,
                   }),
-                  { totalRecords: 0, totalKm: 0, totalFineAmount: 0 },
+                  { totalRecords: 0, totalKm: 0, totalDurationSeconds: 0, totalFineAmount: 0 },
                 );
                 return (
                   <div style={{ ...card, background: 'linear-gradient(135deg, rgba(255,107,0,0.12) 0%, rgba(255,107,0,0.04) 100%)', border: '1px solid rgba(255,107,0,0.25)' }}>
                     <span style={{ fontSize: '10px', fontWeight: 700, color: '#FF6B00', background: 'rgba(255,107,0,0.12)', padding: '3px 10px', borderRadius: '20px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>팀 전체</span>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center', marginTop: '14px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center', marginTop: '14px' }}>
                       <div>
                         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '28px', fontWeight: 900, color: '#FF6B00', lineHeight: 1 }}>{total.totalRecords}</p>
                         <p style={{ fontSize: '11px', color: 'rgba(255,107,0,0.6)', marginTop: '3px' }}>인증 횟수</p>
                       </div>
                       <div>
                         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '28px', fontWeight: 900, color: '#FF6B00', lineHeight: 1 }}>{total.totalKm.toFixed(1)}</p>
-                        <p style={{ fontSize: '11px', color: 'rgba(255,107,0,0.6)', marginTop: '3px' }}>총 km</p>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,107,0,0.6)', marginTop: '3px' }}>거리(km)</p>
+                      </div>
+                      <div>
+                        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '28px', fontWeight: 900, color: '#FF6B00', lineHeight: 1 }}>
+                          {total.totalDurationSeconds > 0 ? formatDuration(total.totalDurationSeconds) : '0분'}
+                        </p>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,107,0,0.6)', marginTop: '3px' }}>시간(h)</p>
                       </div>
                       <div>
                         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '28px', fontWeight: 900, color: total.totalFineAmount > 0 ? '#EF4444' : '#FF6B00', lineHeight: 1 }}>
@@ -179,14 +190,20 @@ export default function StatsPage() {
                       <span style={{ fontSize: '10px', color: '#FF6B00', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.25)', padding: '2px 8px', borderRadius: '20px', fontWeight: 700 }}>나</span>
                     )}
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center' }}>
                     <div>
                       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '24px', fontWeight: 800, color: '#E8E8F0', lineHeight: 1 }}>{s.totalRecords}</p>
                       <p style={{ fontSize: '10px', color: '#3A3A4A', marginTop: '3px' }}>인증 횟수</p>
                     </div>
                     <div>
                       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '24px', fontWeight: 800, color: '#E8E8F0', lineHeight: 1 }}>{s.totalKm.toFixed(1)}</p>
-                      <p style={{ fontSize: '10px', color: '#3A3A4A', marginTop: '3px' }}>총 km</p>
+                      <p style={{ fontSize: '10px', color: '#3A3A4A', marginTop: '3px' }}>거리(km)</p>
+                    </div>
+                    <div>
+                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '24px', fontWeight: 800, color: '#E8E8F0', lineHeight: 1 }}>
+                        {s.totalDurationSeconds > 0 ? formatDuration(s.totalDurationSeconds) : '0분'}
+                      </p>
+                      <p style={{ fontSize: '10px', color: '#3A3A4A', marginTop: '3px' }}>시간(h)</p>
                     </div>
                     <div>
                       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '24px', fontWeight: 800, color: s.totalFineAmount > 0 ? '#EF4444' : '#E8E8F0', lineHeight: 1 }}>

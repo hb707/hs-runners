@@ -43,6 +43,8 @@ type RunRecordRow = {
   vision_raw: string | null;
   vision_confidence: RunRecord['visionConfidence'];
   manual_distance_km: number | null;
+  duration_seconds: number | null;
+  manual_duration_seconds: number | null;
   recorded_at: string;
   week_number: string;
   created_at: string;
@@ -167,6 +169,8 @@ function toRunRecord(row: RunRecordRow): RunRecord {
     visionRaw: row.vision_raw,
     visionConfidence: row.vision_confidence,
     manualDistanceKm: row.manual_distance_km,
+    durationSeconds: row.duration_seconds,
+    manualDurationSeconds: row.manual_duration_seconds,
     recordedAt: row.recorded_at,
     weekNumber: row.week_number,
     createdAt: row.created_at,
@@ -183,6 +187,8 @@ function toRunRecordRow(record: RunRecord): RunRecordRow {
     vision_raw: record.visionRaw,
     vision_confidence: record.visionConfidence,
     manual_distance_km: record.manualDistanceKm,
+    duration_seconds: record.durationSeconds,
+    manual_duration_seconds: record.manualDurationSeconds,
     recorded_at: record.recordedAt,
     week_number: record.weekNumber,
     created_at: record.createdAt,

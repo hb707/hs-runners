@@ -19,6 +19,7 @@ export async function analyzeRecordImage(buffer: Buffer, originalName: string, m
     recordedDate: visionResult.recordedDate,
     visionRaw: visionResult.visionRaw,
     visionConfidence: visionResult.visionConfidence,
+    durationSeconds: visionResult.durationSeconds,
   };
 }
 
@@ -36,6 +37,8 @@ export async function createRecord(userId: string, teamId: string, input: Create
     visionRaw: input.visionRaw ?? null,
     visionConfidence: (input.visionConfidence ?? 'failed') as VisionConfidence,
     manualDistanceKm: null,
+    durationSeconds: input.durationSeconds ?? null,
+    manualDurationSeconds: null,
     recordedAt,
     weekNumber: getISOWeekNumber(new Date(recordedAt)),
     createdAt: now,
@@ -62,12 +65,21 @@ export async function getRecord(recordId: string, requesterTeamId: string): Prom
   return record;
 }
 
-export async function updateRecordDistance(recordId: string, distanceKm: number, requesterTeamId: string): Promise<RunRecord> {
+export async function updateRecordMeta(
+  recordId: string,
+  requesterTeamId: string,
+  distanceKm?: number | null,
+  durationSeconds?: number | null,
+): Promise<RunRecord> {
   const record = await findRecordById(recordId);
   if (!record) throw new AppError(404, 'RECORD_NOT_FOUND', 'Record not found');
   if (record.teamId !== requesterTeamId) throw new AppError(403, 'FORBIDDEN', 'Not your team record');
 
-  const updated: RunRecord = { ...record, manualDistanceKm: distanceKm };
+  const updated: RunRecord = {
+    ...record,
+    ...(distanceKm !== undefined ? { manualDistanceKm: distanceKm } : {}),
+    ...(durationSeconds !== undefined ? { manualDurationSeconds: durationSeconds } : {}),
+  };
   await upsertRecord(updated);
   return updated;
 }

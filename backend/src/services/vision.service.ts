@@ -10,19 +10,21 @@ interface VisionResult {
   visionRaw: string | null;
   visionConfidence: VisionConfidence;
   recordedDate: string | null; // YYYY-MM-DD
+  durationSeconds: number | null;
 }
 
 const VISION_PROMPT = (currentYear: number) => `This is a screenshot from a Korean running app or GPS watch.
-Extract the total running distance in kilometers and the date of the run.
+Extract the total running distance in kilometers, the duration of the run, and the date of the run.
 Respond ONLY with a valid JSON object in this exact format:
-{"distanceKm": <number or null>, "rawText": "<extracted text>", "confidence": "<high|medium|low|failed>", "recordedDate": "<YYYY-MM-DD or null>"}
+{"distanceKm": <number or null>, "rawText": "<extracted text>", "confidence": "<high|medium|low|failed>", "recordedDate": "<YYYY-MM-DD or null>", "durationSeconds": <integer or null>}
 
 Rules:
 - distanceKm should be a number (e.g. 5.23) or null if not found
 - If distance is shown in miles, convert to km (1 mile = 1.609 km)
 - confidence: "high" if clearly readable, "medium" if partially readable, "low" if uncertain, "failed" if not found
 - rawText: the exact text you found showing the distance
-- recordedDate: the date shown in the screenshot in YYYY-MM-DD format. If only month/day is visible (e.g. "3/12" or "03.12"), assume the year is ${currentYear}. If no date is found, return null.`;
+- recordedDate: the date shown in the screenshot in YYYY-MM-DD format. If only month/day is visible (e.g. "3/12" or "03.12"), assume the year is ${currentYear}. If no date is found, return null.
+- durationSeconds: total exercise duration converted to integer seconds. Handle formats like "32:15" (32min 15sec = 1935), "1:05:20" (1hr 5min 20sec = 3920), "32분 15초" (1935), "0:32:15" (1935). Return null if no duration found.`;
 
 async function resizeImage(inputBuffer: Buffer): Promise<Buffer> {
   return sharp(inputBuffer)
@@ -38,7 +40,7 @@ export async function analyzeRunningImage(inputBuffer: Buffer): Promise<VisionRe
 
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
+      max_tokens: 400,
       messages: [
         {
           role: 'user',
@@ -60,7 +62,7 @@ export async function analyzeRunningImage(inputBuffer: Buffer): Promise<VisionRe
     const text = response.content[0].type === 'text' ? response.content[0].text : '';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      return { distanceKm: null, visionRaw: null, visionConfidence: 'failed', recordedDate: null };
+      return { distanceKm: null, visionRaw: null, visionConfidence: 'failed', recordedDate: null, durationSeconds: null };
     }
 
     const parsed = JSON.parse(jsonMatch[0]) as {
@@ -68,6 +70,7 @@ export async function analyzeRunningImage(inputBuffer: Buffer): Promise<VisionRe
       rawText: string;
       confidence: VisionConfidence;
       recordedDate: string | null;
+      durationSeconds: number | null;
     };
 
     return {
@@ -75,9 +78,10 @@ export async function analyzeRunningImage(inputBuffer: Buffer): Promise<VisionRe
       visionRaw: parsed.rawText ?? null,
       visionConfidence: parsed.confidence ?? 'failed',
       recordedDate: parsed.recordedDate ?? null,
+      durationSeconds: typeof parsed.durationSeconds === 'number' ? Math.round(parsed.durationSeconds) : null,
     };
   } catch (err) {
     console.error('Vision API error:', err);
-    return { distanceKm: null, visionRaw: null, visionConfidence: 'failed', recordedDate: null };
+    return { distanceKm: null, visionRaw: null, visionConfidence: 'failed', recordedDate: null, durationSeconds: null };
   }
 }

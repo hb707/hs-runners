@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { analyzeRecordImage, createRecord, getTeamRecordsByMonth, getUserRecordsByMonth, getRecord, updateRecordDistance, removeRecord } from '../services/records.service';
+import { analyzeRecordImage, createRecord, getTeamRecordsByMonth, getUserRecordsByMonth, getRecord, updateRecordMeta, removeRecord } from '../services/records.service';
 import { AppError } from '../middleware/error.middleware';
 
 export async function analyzeImage(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -63,7 +63,12 @@ export async function getOne(req: Request, res: Response, next: NextFunction): P
 export async function updateDistance(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     if (!req.user!.teamId) throw new AppError(403, 'NO_TEAM', 'Not in a team');
-    const record = await updateRecordDistance(req.params.recordId, req.body.distanceKm, req.user!.teamId);
+    const record = await updateRecordMeta(
+      req.params.recordId,
+      req.user!.teamId,
+      req.body.distanceKm,
+      req.body.durationSeconds,
+    );
     res.json({ success: true, data: record });
   } catch (err) {
     next(err);

@@ -42,6 +42,8 @@ export interface RunRecord {
   visionRaw: string | null;
   visionConfidence: VisionConfidence;
   manualDistanceKm: number | null;
+  durationSeconds: number | null;
+  manualDurationSeconds: number | null;
   recordedAt: string;
   weekNumber: string;
   createdAt: string;

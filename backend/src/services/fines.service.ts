@@ -121,6 +121,10 @@ export async function getTeamStats(teamId: string, month?: string, year?: string
       return sum + (r.manualDistanceKm ?? r.distanceKm ?? 0);
     }, 0);
 
+    const totalDurationSeconds = memberRecords.reduce((sum, r) => {
+      return sum + (r.manualDurationSeconds ?? r.durationSeconds ?? 0);
+    }, 0);
+
     const totalFineAmount = memberFines.reduce((sum, f) => sum + f.totalFine, 0);
 
     return {
@@ -129,6 +133,7 @@ export async function getTeamStats(teamId: string, month?: string, year?: string
       profileImageUrl: member.profileImageUrl,
       totalRecords: memberRecords.length,
       totalKm: Math.round(totalKm * 100) / 100,
+      totalDurationSeconds,
       totalFineAmount,
     };
   });
