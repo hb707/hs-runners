@@ -59,7 +59,6 @@ export interface UserStats {
   totalRecords: number;
   totalKm: number;
   totalFineAmount: number;
-  unpaidFineAmount: number;
 }
 
 export interface ApiResponse<T> {

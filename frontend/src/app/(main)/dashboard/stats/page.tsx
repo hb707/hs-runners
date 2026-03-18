@@ -57,7 +57,7 @@ export default function StatsPage() {
     else query = `year=${year}`;
 
     api.get<{ success: boolean; data: UserStats[] }>(`/stats/team/${user.teamId}?${query}`)
-      .then((res) => setStats(res.data.data))
+      .then((res) => setStats([...res.data.data].sort((a, b) => b.totalKm - a.totalKm)))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [user?.teamId, viewMode, currentWeek, monthStr, year]);
@@ -134,9 +134,9 @@ export default function StatsPage() {
                   (acc, s) => ({
                     totalRecords: acc.totalRecords + s.totalRecords,
                     totalKm: acc.totalKm + s.totalKm,
-                    unpaidFineAmount: acc.unpaidFineAmount + s.unpaidFineAmount,
+                    totalFineAmount: acc.totalFineAmount + s.totalFineAmount,
                   }),
-                  { totalRecords: 0, totalKm: 0, unpaidFineAmount: 0 },
+                  { totalRecords: 0, totalKm: 0, totalFineAmount: 0 },
                 );
                 return (
                   <div style={{ ...card, background: 'linear-gradient(135deg, rgba(255,107,0,0.12) 0%, rgba(255,107,0,0.04) 100%)', border: '1px solid rgba(255,107,0,0.25)' }}>
@@ -151,10 +151,10 @@ export default function StatsPage() {
                         <p style={{ fontSize: '11px', color: 'rgba(255,107,0,0.6)', marginTop: '3px' }}>총 km</p>
                       </div>
                       <div>
-                        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '28px', fontWeight: 900, color: total.unpaidFineAmount > 0 ? '#EF4444' : '#FF6B00', lineHeight: 1 }}>
-                          {total.unpaidFineAmount > 0 ? `${(total.unpaidFineAmount / 10000).toFixed(1)}만` : '0'}
+                        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '28px', fontWeight: 900, color: total.totalFineAmount > 0 ? '#EF4444' : '#FF6B00', lineHeight: 1 }}>
+                          {total.totalFineAmount > 0 ? `${(total.totalFineAmount / 10000).toFixed(1)}만` : '0'}
                         </p>
-                        <p style={{ fontSize: '11px', color: 'rgba(255,107,0,0.6)', marginTop: '3px' }}>미납 벌금</p>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,107,0,0.6)', marginTop: '3px' }}>누적 벌금</p>
                       </div>
                     </div>
                   </div>
@@ -189,10 +189,10 @@ export default function StatsPage() {
                       <p style={{ fontSize: '10px', color: '#3A3A4A', marginTop: '3px' }}>총 km</p>
                     </div>
                     <div>
-                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '24px', fontWeight: 800, color: s.unpaidFineAmount > 0 ? '#EF4444' : '#E8E8F0', lineHeight: 1 }}>
-                        {s.unpaidFineAmount > 0 ? `${(s.unpaidFineAmount / 10000).toFixed(1)}만` : '0'}
+                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '24px', fontWeight: 800, color: s.totalFineAmount > 0 ? '#EF4444' : '#E8E8F0', lineHeight: 1 }}>
+                        {s.totalFineAmount > 0 ? `${(s.totalFineAmount / 10000).toFixed(1)}만` : '0'}
                       </p>
-                      <p style={{ fontSize: '10px', color: '#3A3A4A', marginTop: '3px' }}>미납 벌금</p>
+                      <p style={{ fontSize: '10px', color: '#3A3A4A', marginTop: '3px' }}>누적 벌금</p>
                     </div>
                   </div>
                 </div>

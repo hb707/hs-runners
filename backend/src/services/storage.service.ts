@@ -346,6 +346,18 @@ export async function getRecordsByTeam(teamId: string): Promise<RunRecord[]> {
   return (data as RunRecordRow[]).map(toRunRecord);
 }
 
+export async function getRecordsByTeamInRange(teamId: string, start: Date, end: Date): Promise<RunRecord[]> {
+  const { data, error } = await supabase
+    .from('records')
+    .select('*')
+    .eq('team_id', teamId)
+    .gte('recorded_at', start.toISOString())
+    .lte('recorded_at', end.toISOString())
+    .order('recorded_at', { ascending: false });
+  if (error) throwDbError(error, 'Failed to load team records in range');
+  return (data as RunRecordRow[]).map(toRunRecord);
+}
+
 export async function getRecordsByUser(userId: string): Promise<RunRecord[]> {
   const { data, error } = await supabase
     .from('records')

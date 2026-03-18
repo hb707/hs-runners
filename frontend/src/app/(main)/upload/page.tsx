@@ -127,8 +127,14 @@ export default function GalleryPage() {
   return (
     <div style={{ backgroundColor: '#0D0D10', minHeight: '100%' }}>
       {/* Header */}
-      <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #1A1A22' }}>
+      <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #1A1A22', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '22px', fontWeight: 800, color: '#E8E8F0', letterSpacing: '-0.01em' }}>인증</h1>
+        <button
+          onClick={() => router.push('/upload/new')}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', background: 'rgba(255,107,0,0.12)', border: '1px solid rgba(255,107,0,0.3)', borderRadius: '10px', cursor: 'pointer' }}
+        >
+          <Camera style={{ width: '17px', height: '17px', color: '#FF6B00' }} />
+        </button>
       </div>
 
       {records.length === 0 ? (
@@ -179,32 +185,6 @@ export default function GalleryPage() {
         </>
       )}
 
-      {/* Floating upload button */}
-      <button
-        onClick={() => router.push('/upload/new')}
-        style={{
-          position: 'fixed',
-          bottom: 'calc(64px + env(safe-area-inset-bottom) + 16px)',
-          right: '50%',
-          transform: 'translateX(calc(50% - 16px))',
-          maxWidth: 'calc(430px - 32px)',
-          width: 'calc(100vw - 32px)',
-          height: '52px',
-          background: 'linear-gradient(135deg, #FF6B00, #FF8C1A)',
-          border: 'none',
-          borderRadius: '26px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          cursor: 'pointer',
-          boxShadow: '0 8px 24px rgba(255,107,0,0.45)',
-          zIndex: 40,
-        }}
-      >
-        <Camera style={{ width: '20px', height: '20px', color: '#fff' }} />
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '16px', fontWeight: 800, color: '#fff', letterSpacing: '0.06em' }}>인증하기</span>
-      </button>
     </div>
   );
 }
