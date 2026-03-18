@@ -158,8 +158,8 @@ export default function UploadNewPage() {
         description: effectiveKm != null ? `${effectiveKm.toFixed(2)}km 달성 🏃` : '오늘도 수고하셨어요!',
         imageUrl: result?.imageUrl ?? '',
         link: {
-          mobileWebUrl: window.location.origin,
-          webUrl: window.location.origin,
+          mobileWebUrl: `${window.location.origin}/dashboard/records/${result?.id}`,
+          webUrl: `${window.location.origin}/dashboard/records/${result?.id}`,
         },
       },
     });
