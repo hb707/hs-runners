@@ -1,10 +1,28 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Script from 'next/script';
 import Image from 'next/image';
 import { Camera, CheckCircle2, Sparkles, MapPin, CalendarDays, Timer } from 'lucide-react';
 import api from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
 import type { RunRecord } from '@/types';
+
+interface KakaoSDK {
+  isInitialized(): boolean;
+  init(key: string): void;
+  Share: {
+    sendDefault(options: {
+      objectType: string;
+      content: {
+        title: string;
+        description?: string;
+        imageUrl: string;
+        link: { mobileWebUrl: string; webUrl: string };
+      };
+    }): void;
+  };
+}
 
 type UploadState = 'idle' | 'analyzing' | 'analyzed' | 'saving' | 'success' | 'failed';
 
@@ -49,6 +67,7 @@ function getStepIndex(state: UploadState): number {
 
 export default function UploadNewPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [state, setState] = useState<UploadState>('idle');
@@ -58,14 +77,8 @@ export default function UploadNewPage() {
   const [durationInput, setDurationInput] = useState('');
   const [result, setResult] = useState<RunRecord | null>(null);
   const [error, setError] = useState('');
+  const [kakaoReady, setKakaoReady] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (state === 'success') {
-      const timer = setTimeout(() => router.replace('/upload'), 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [state, router]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
@@ -134,10 +147,40 @@ export default function UploadNewPage() {
   }
 
   const effectiveKm = result?.manualDistanceKm ?? result?.distanceKm;
+
+  function handleKakaoShare() {
+    const kakao = (window as Window & { Kakao?: KakaoSDK }).Kakao;
+    if (!kakao?.isInitialized()) return;
+    kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: `${user?.nickname ?? '팀원'}님이 오늘의 운동을 완료했어요!`,
+        description: effectiveKm != null ? `${effectiveKm.toFixed(2)}km 달성 🏃` : '오늘도 수고하셨어요!',
+        imageUrl: result?.imageUrl ?? '',
+        link: {
+          mobileWebUrl: window.location.origin,
+          webUrl: window.location.origin,
+        },
+      },
+    });
+  }
   const stepIndex = getStepIndex(state);
   const isLoading = state === 'analyzing' || state === 'saving';
 
   return (
+    <>
+    <Script
+      src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.7/kakao.min.js"
+      integrity="sha384-tJkjbtDbvoxO+diRuDtwRO9JXR7pjWnfjfRn5ePUpl7e7RJCxKCwwnfqUAdXh53p"
+      crossOrigin="anonymous"
+      onLoad={() => {
+        const kakao = (window as Window & { Kakao?: KakaoSDK }).Kakao;
+        if (kakao && !kakao.isInitialized()) {
+          kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY!);
+        }
+        setKakaoReady(true);
+      }}
+    />
     <div style={{
       backgroundColor: '#0D0D10',
       minHeight: '100dvh',
@@ -436,7 +479,6 @@ export default function UploadNewPage() {
               인증 완료!
             </p>
             <p style={{ fontSize: '14px', color: '#5A5A72' }}>오늘도 훌륭한 러닝이었어요</p>
-            <p style={{ fontSize: '12px', color: '#3A3A4A', marginTop: '4px' }}>갤러리로 이동 중...</p>
           </div>
         )}
 
@@ -674,6 +716,53 @@ export default function UploadNewPage() {
             인증하기
           </button>
         )}
+
+        {state === 'success' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button
+              onClick={handleKakaoShare}
+              disabled={!kakaoReady}
+              style={{
+                width: '100%',
+                padding: '18px',
+                background: '#FEE500',
+                border: 'none',
+                borderRadius: '18px',
+                fontSize: '17px',
+                fontWeight: 800,
+                fontFamily: "'Barlow Condensed', sans-serif",
+                letterSpacing: '0.07em',
+                color: '#000000',
+                cursor: kakaoReady ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                opacity: kakaoReady ? 1 : 0.6,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png" alt="" style={{ width: '20px', height: '20px' }} />
+              카카오톡으로 공유하기
+            </button>
+            <button
+              onClick={() => router.replace('/upload')}
+              style={{
+                width: '100%',
+                padding: '16px',
+                background: 'transparent',
+                border: '1.5px solid #252530',
+                borderRadius: '18px',
+                fontSize: '15px',
+                fontWeight: 700,
+                color: '#5A5A72',
+                cursor: 'pointer',
+              }}
+            >
+              인증 탭으로 이동
+            </button>
+          </div>
+        )}
       </div>
 
       <input
@@ -684,5 +773,6 @@ export default function UploadNewPage() {
         onChange={handleFileChange}
       />
     </div>
+    </>
   );
 }
